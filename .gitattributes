@@ -156,7 +156,6 @@ vpopmail/vpgsql.c -text
 vpopmail/vpgsql.h -text
 vpopmail/vpopbull.c -text
 vpopmail/vpopmail.c -text
-vpopmail/vpopmail.config.sh -text
 vpopmail/vpopmail.h -text
 vpopmail/vqmaillocal.c -text
 vpopmail/vsetuserquota.c -text
