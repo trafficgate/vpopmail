@@ -29,6 +29,7 @@ vpopmail/README.quotas -text
 vpopmail/README.roamingusers -text
 vpopmail/README.sybase -text
 vpopmail/README.vlimits -text
+vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
 vpopmail/UPGRADE -text
 vpopmail/aclocal.m4 -text
