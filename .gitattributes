@@ -20,6 +20,7 @@ vpopmail/Makefile.in -text
 vpopmail/README -text
 vpopmail/README.activedirectory -text
 vpopmail/README.filelocking -text
+vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
 vpopmail/README.mysql -text
 vpopmail/README.oracle -text
