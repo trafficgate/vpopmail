@@ -105,6 +105,7 @@ vpopmail/hmac_md5.h -text
 vpopmail/install-sh -text
 vpopmail/ldap/qmailUser.schema -text
 vpopmail/ldap/slapd.conf -text
+vpopmail/ltmain.sh -text
 vpopmail/maildirquota.c -text
 vpopmail/maildirquota.h -text
 vpopmail/md5.c -text
