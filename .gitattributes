@@ -140,6 +140,7 @@ vpopmail/vkill.c -text
 vpopmail/vldap.c -text
 vpopmail/vldap.h -text
 vpopmail/vlimits.c -text
+vpopmail/vlimits.default -text
 vpopmail/vlimits.h -text
 vpopmail/vlog.h -text
 vpopmail/vmkpasswd.c -text
