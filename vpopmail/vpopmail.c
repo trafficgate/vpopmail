@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.26 2003-12-22 16:11:03 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -514,6 +514,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
       strcpy (quota, "NOQUOTA");
   }
   vsetuserquota (username, domain, quota);
+  if (strcmp (quota, "NOQUOTA") != 0) {
+    /* create maildirsize file by checking the quota */
+    chdir(Dir);
+    if (strlen(user_hash)>0) chdir(user_hash);
+    chdir(username);
+    (void)vmaildir_readquota("./Maildir/", quota);
+    chdir(Dir);
+  }
 
 #ifdef SQWEBMAIL_PASS
   {
@@ -1563,18 +1571,6 @@ int vsetuserquota( char *username, char *domain, char *quota )
 
   mypw = vauth_getpw( username, domain );
   remove_maildirsize(mypw->pw_dir);
-  if (strcmp (quota, "NOQUOTA") != 0) {
-   uid_t uid;
-   gid_t gid;
-   char maildir[MAX_BUFF];
-    snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
-    umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, quota);
-    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
-      strcat(maildir, "maildirsize");
-      chown(maildir,uid,gid);
-    }
-  }
   return(0);
 }
 
@@ -3058,7 +3054,7 @@ char *get_remote_ip()
   char *p;
 
   ipenv = getenv("TCPREMOTEIP");
-  if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipbuf))) return ipenv;
+  if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipaddr))) return ipenv;
 
   strcpy (ipbuf, ipenv);
   ipaddr = ipbuf;

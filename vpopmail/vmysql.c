@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vmysql.c,v 1.12 2003-12-17 03:13:40 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -346,7 +346,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
+#ifdef HARD_QUOTA
+    snprintf( quota, 30, "%s", HARD_QUOTA );
+#else
     strncpy( quota, "NOQUOTA", 30 );
+#endif
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( domain );
@@ -1298,26 +1302,6 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *alias_line)
-{
- int err;
-
-    if ( (err=vauth_open_update()) != 0 ) return(err);
-
-    snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where alias = \"%s\" \
-and valias_line = \"%s\" and domain = \"%s\"", alias, alias_line, domain );
-
-    if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        vcreate_valias_table();
-        if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
-            return(-1);
-        }
-    }
-    return(0);
-}
-
 int valias_delete( char *alias, char *domain)
 {
  int err;
@@ -1378,7 +1362,7 @@ char *valias_select_all( char *alias, char *domain )
     if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
     snprintf( SqlBufRead, SQL_BUF_SIZE, 
-        "select alias, valias_line from valias where domain = \"%s\" order by alias", domain );
+        "select alias, valias_line from valias where domain = \"%s\"", domain );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();

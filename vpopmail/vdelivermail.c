@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11 2004-02-16 06:28:44 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.7 2003-12-17 03:39:50 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -444,9 +444,6 @@ int deliver_mail(char *address, char *quota)
  FILE *fs;
  char tmp_file[256];
 
-    /* This is a comment, ignore it */
-    if ( *address == '#' ) return(0);
-
     /* check if the email is looping to this user */
     if ( is_looping( address ) == 1 ) {
         printf("message is looping %s\n", address );
@@ -467,13 +464,15 @@ int deliver_mail(char *address, char *quota)
         return(0);
       }
 
-    /* Starts with '.' or '/', then it's an mbox or maildir delivery */
-    else if ((*address == '.') || (*address == '/')) {
-        /* check for mbox delivery and exit accordingly */
-        if (address[strlen(address)-1] != '/') {
-            printf ("can't handle mbox delivery for %s", address);
-            vexit(111);
-        }
+    /* This is a comment, ignore it */
+    else if ( *address == '#' ) {
+        return(0);
+    }
+
+    /* Contains /Maildir/ ? Then it must be a full or relative
+     * path to a Maildir 
+     */ 
+    else if ( strstr(address, "/Maildir/") != NULL ) {
 
         /* if the user has a quota set */
         if ( strncmp(quota, "NOQUOTA", 2) != 0 ) {
@@ -614,7 +613,7 @@ int deliver_mail(char *address, char *quota)
 
     if ( lseek(0, 0L, SEEK_SET) < 0 ) {
         printf("lseek errno=%d\n", errno);
-        return(-2);
+        return(errno);
     }
 
     /* write the Return-Path: and Delivered-To: headers */
@@ -627,7 +626,7 @@ int deliver_mail(char *address, char *quota)
             return(-1);
         } else {
             printf("failed to write delivered to line errno=%d\n",errno);
-           return(-2);
+           return(errno);
         }
     }
 
@@ -642,7 +641,7 @@ int deliver_mail(char *address, char *quota)
              */
             if ( unlink(local_file) != 0 ) {
                 printf("unlink failed %s errno = %d\n", local_file, errno);
-                return(-2);
+                return(errno);
             }
 
             /* Check if the user is over quota */
@@ -650,7 +649,7 @@ int deliver_mail(char *address, char *quota)
                 return(-1);
             } else {
                 printf("write failed errno = %d\n", errno);
-                return(-2);
+                return(errno);
             }
         }
     }
@@ -692,7 +691,7 @@ int deliver_mail(char *address, char *quota)
                     printf("rename failed %s %s errno = %d\n", 
                         local_file, local_file_new, errno);
                     /* shouldn't we unlink the file here? */
-                    return(-2);
+                    return(errno);
 
                 /* rename worked, so we are okay now */
                 } else {
@@ -704,7 +703,7 @@ int deliver_mail(char *address, char *quota)
                 printf("link REALLY failed %s %s errno = %d\n", 
                     local_file, local_file_new, errno);
                 unlink(local_file);
-                return(-2);
+                return(errno);
             }
         }
     }
@@ -979,13 +978,6 @@ void checkuser()
                TheDomainUid, TheDomainGid)==NULL){
             printf("Auto creation of maildir failed. vpopmail (#5.9.8)\n");
             vexit(100);
-        }
-        /* Re-read the vpw entry, because we need to lookup the newly created
-         * pw_dir entry
-         */
-        if ((vpw=vauth_getpw(TheUser, TheDomain)) == NULL ) {
-           printf("Failed to vauth_getpw(). vpopmail (#5.9.8.1)\n");
-           vexit(100);
         }
     }
 

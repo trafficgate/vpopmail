@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20 2004-02-11 15:40:17 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.13 2003-12-17 03:13:40 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -181,7 +181,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   if ( (err=vauth_open()) != 0 ) return(err);
   vset_default_domain( domain );
 
+#ifdef HARD_QUOTA
+  snprintf( quota, 30, "%s", HARD_QUOTA );
+#else
   strncpy( quota, "NOQUOTA", 30 );
+#endif
 
 #ifndef MANY_DOMAINS
   domstr = vauth_munch_domain( domain );
@@ -719,6 +723,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 	    "DELETE FROM relay WHERE timestamp <= %d", 
 	    (int)delete_time);
   pgres=PQexec(pgc, SqlBufUpdate);
+  free(SqlBufUpdate);
   if( !pgres || PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     vcreate_relay_table();
   }
@@ -732,6 +737,7 @@ void vcreate_relay_table()
   snprintf( SqlBufCreate, SQL_BUF_SIZE, 
 	    "CREATE TABLE relay ( %s )", RELAY_TABLE_LAYOUT);
   pgres=PQexec(pgc, SqlBufCreate);
+  free(SqlBufCreate);
   if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK) {
     fprintf(stderr, "vcreate_relay_table: create failed[9]: %s \n", 
 	    PQresultErrorMessage(pgres));
@@ -764,6 +770,7 @@ void vcreate_ip_map_table()
   snprintf(SqlBufCreate, SQL_BUF_SIZE, "create table ip_alias_map ( %s )", 
       IP_ALIAS_TABLE_LAYOUT);
   pgres=PQexec(pgc, SqlBufCreate);
+  free(SqlBufCreate);
   if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK)
     fprintf(stderr,"vcreate_ip_map_table[a]:%s\n",PQresultErrorMessage(pgres));
   if( pgres ) PQclear(pgres);
@@ -779,12 +786,13 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL ) return(-2);
-  if ( vauth_open() != 0 ) return(-3);
+  if ( vauth_open_read() != 0 ) return(-3);
 
   snprintf(SqlBufRead, SQL_BUF_SIZE,
 	   "select domain from ip_alias_map where ip_addr = '%s'",
 	   ip);
   pgres=PQexec(pgc, SqlBufRead);
+  free(SqlBufRead);
   if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
     fprintf( stderr, "vget_ip_map: pgsql query: %s\n", PQerrorMessage(pgc));
       if( pgres ) PQclear(pgres);
@@ -815,10 +823,11 @@ int vadd_ip_map( char *ip, char *domain)
   if ( (err=vauth_open()) != 0 ) return(err);
 
   if( ( err=pg_begin() )!= 0 ) {     /* begin transaction */
+    free(SqlBufUpdate);
     return(err);
   }
   snprintf(SqlBufUpdate,SQL_BUF_SIZE,  
-	   "delete from ip_alias_map where ip_addr='%s' and domain='%s'",
+	   "delete from ip_alias_map where ip_addr='%s' and domain='%'",
 	   ip, domain);
 
   /* step 1: delete previous entry */
@@ -841,11 +850,11 @@ int vadd_ip_map( char *ip, char *domain)
     if ( !pgres || PQresultStatus(pgres) != PGRES_COMMAND_OK ) {
       fprintf( stderr, "vadd_ip_map: insert: %s\n", PQerrorMessage(pgc));
       if( pgres ) PQclear(pgres);
+      free(SqlBufUpdate);
       return -1;
     }
-  }
-  if( pgres ) PQclear(pgres);
-  return ( pg_end() ); /* end transaction */
+    if( pgres ) PQclear(pgres);
+    return ( pg_end() ); /* end transaction */
 }
 
 int vdel_ip_map( char *ip, char *domain) 
@@ -880,7 +889,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
 
   if ( ip == NULL ) return(-1);
   if ( domain == NULL ) return(-1);
-  if ( ( err=vauth_open() ) != 0 ) return(err);
+  if ( ( err=open_read() ) != 0 ) return(err);
 
   if ( first == 1 ) {
     snprintf(SqlBufRead,SQL_BUF_SIZE, 
@@ -889,13 +898,13 @@ int vshow_ip_map( int first, char *ip, char *domain )
       PQclear(pgres);
       ntuples=ctuple=0;
     }	
-    if ( ! (pgres=PQexec(pgc, SqlBufRead))
+    if ( ! (pgres=PQexec(pgc, qr))
          || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       if(pgres) PQclear(pgres);
       snprintf(SqlBufRead,SQL_BUF_SIZE, 
 	       "select ip_addr, domain from ip_alias_map"); 
       vcreate_ip_map_table();
-      if ( ! (pgres=PQexec(pgc, SqlBufRead))
+      if ( ! (pgres=PQexec(pgc, qr))
 	   || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
 	return(0);
       }
@@ -1191,7 +1200,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     if( pgres ) PQclear(pgres);
     vcreate_lastauth_table();
     snprintf( SqlBufRead,  SQL_BUF_SIZE, "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", pw->pw_name, domain);
-    pgres=PQexec(pgc, SqlBufRead);
+    pgres=PQexec(pgc, SqlBufUpdate);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf(stderr,"vpgsql: sql error[g]: %s\n", PQerrorMessage(pgc));
       return(0);
@@ -1223,7 +1232,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     vcreate_lastauth_table();
     snprintf( SqlBufRead,  SQL_BUF_SIZE, "select remote_ip from lastauth where userid='%s' and domain='%s'", pw->pw_name, domain);
 
-    pgres=PQexec(pgc, SqlBufRead);
+    pgres=PQexec(pgc, SqlBufUpdate);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf( stderr,"vpgsql: sql error[h]: %s\n", PQerrorMessage(pgc));
       return(NULL);
@@ -1350,30 +1359,6 @@ int valias_delete( char *alias, char *domain)
   return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *alias_line)
-{
-  PGresult *pgres;
-  int err;
-
-  if ( (err=vauth_open()) != 0 ) return(err);
-
-  snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-	    "delete from valias where alias='%s' and valias_line='%s' and domain='%s'", 
-	    alias, alias_line, domain );
-  pgres=PQexec( pgc, SqlBufUpdate );
-  if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
-    if(pgres) PQclear(pgres);
-    vcreate_valias_table();
-    pgres=PQexec( pgc, SqlBufUpdate );
-    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
-      fprintf(stderr,"vpgsql: sql error: %s\n", PQresultErrorMessage(pgres));
-      return(-1);
-    }
-  }
-  if(pgres) PQclear(pgres);
-  return(0);
-}
-
 int valias_delete_domain( char *domain)
 {
   PGresult *pgres;
@@ -1409,20 +1394,10 @@ void vcreate_valias_table()
   snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table valias ( %s )", 
 	    VALIAS_TABLE_LAYOUT );
 
-    pgres=PQexec( pgc, SqlBufCreate );
+    pgres=PQexec( pgc, SqlBufUpdate );
     if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
       if( pgres ) PQclear(pgres);
       fprintf(stderr,"vpgsql:sql error[n]:%s\n", PQresultErrorMessage(pgres));
-      return;
-    }
-    if( pgres ) PQclear(pgres);
-    snprintf( SqlBufCreate, SQL_BUF_SIZE,
-	"create index valias_idx on valias ( %s )", VALIAS_INDEX_LAYOUT );
-
-    pgres=PQexec( pgc, SqlBufCreate );
-    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
-      if( pgres ) PQclear(pgres);
-      fprintf(stderr,"vpgsql:sql error[n.i]:%s\n", PQresultErrorMessage(pgres));
       return;
     }
     if( pgres ) PQclear(pgres);
@@ -1437,7 +1412,7 @@ char *valias_select_all( char *alias, char *domain )
   if ( (err=vauth_open()) != 0 ) return(NULL);
 
   snprintf( SqlBufRead, SQL_BUF_SIZE, 
-	    "select alias, valias_line from valias where domain = '%s' order by alias", 
+	    "select alias, valias_line from valias where domain = '%s'", 
 	    domain );
   if ( ! (pgres=PQexec(pgc, SqlBufRead))
        || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
