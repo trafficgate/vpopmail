@@ -45,11 +45,7 @@ vpopmail/cdb/cdbmake.h -text
 vpopmail/cdb/cdbmake_add.c -text
 vpopmail/cdb/cdbmake_hash.c -text
 vpopmail/cdb/cdbmake_pack.c -text
-vpopmail/cdb/compile -text
-vpopmail/cdb/conf-cc -text
-vpopmail/cdb/conf-ld -text
 vpopmail/cdb/find-systype.sh -text
-vpopmail/cdb/load -text
 vpopmail/cdb/makelib -text
 vpopmail/cdb/trycpp.c -text
 vpopmail/cdb/tryulong32.c -text
