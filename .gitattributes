@@ -17,8 +17,9 @@ vpopmail/FAQ -text
 vpopmail/INSTALL -text
 vpopmail/Makefile.am -text
 vpopmail/Makefile.in -text
-vpopmail/NEWS -text
 vpopmail/README -text
+vpopmail/README.activedirectory -text
+vpopmail/README.filelocking -text
 vpopmail/README.ldap -text
 vpopmail/README.mysql -text
 vpopmail/README.oracle -text
@@ -26,10 +27,7 @@ vpopmail/README.pgsql -text
 vpopmail/README.quotas -text
 vpopmail/README.sybase -text
 vpopmail/README.vqmaillocal -text
-vpopmail/RELEASE.NOTES -text
-vpopmail/TODO -text
 vpopmail/UPGRADE -text
-vpopmail/UPGRADE.tren -text
 vpopmail/aclocal.m4 -text
 vpopmail/bigdir.c -text
 vpopmail/cdb/Makefile -text
