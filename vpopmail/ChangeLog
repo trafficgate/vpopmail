@@ -1,23 +1,6 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.2 - released 22-Feb-04
-
-	Tom Collins
-	- Remove attempts to free() static buffers in vpgsql.c. [888888]
-	- Fix problems with creating valias table in vpgsql.c. [892595]
-	- Remove unnecessary check for C++ from configure[.in].
-	- Don't include DESTDIR when building inc_deps and lib_deps.
-	  [886988]
-	- Properly parse Maildir and mbox delivery lines in .qmail files
-	  in vdelivermail (and exit(111) for mbox lines). [889756]
-	- Temporarily disable -s option to vadduser (since it's broken).
-	  [895375]
-
-	Anders Brander
-	- Add contrib/checkpassword_debug.[README,c] for testing and
-	  debugging problems with vchkpw. [862608]
-
 5.4.1 - released 10-Feb-04
 
 	Tom Collins

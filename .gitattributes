@@ -1,4 +1,15 @@
 * text=auto !eol
+CVSROOT/checkoutlist -text
+CVSROOT/commitinfo -text
+CVSROOT/config -text
+CVSROOT/cvswrappers -text
+CVSROOT/editinfo -text
+CVSROOT/loginfo -text
+CVSROOT/modules -text
+CVSROOT/notify -text
+CVSROOT/rcsinfo -text
+CVSROOT/taginfo -text
+CVSROOT/verifymsg -text
 vpopmail/AUTHORS -text
 vpopmail/COPYING -text
 vpopmail/ChangeLog -text
@@ -50,8 +61,6 @@ vpopmail/configure.in -text
 vpopmail/contrib/adduser.mysql -text
 vpopmail/contrib/addusers.pl -text
 vpopmail/contrib/cdb_clearpass.sh -text
-vpopmail/contrib/checkpassword_debug.README -text
-vpopmail/contrib/checkpassword_debug.c -text
 vpopmail/contrib/cistron_radius.README -text
 vpopmail/contrib/cistron_radius.tar.gz -text svneol=unset#unset
 vpopmail/contrib/popfetch-1.0.tar.gz -text svneol=unset#unset
