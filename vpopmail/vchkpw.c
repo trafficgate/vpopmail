@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.8 2003-10-09 23:59:04 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,8 +62,8 @@ unsigned int LocalPort;
 #define AUTH_INC_SIZE 155
 char TheName[AUTH_SIZE];
 char TheUser[AUTH_SIZE];
-char ThePass[AUTH_SIZE]; 	/* for C/R this is 'TheResponse' */
-char TheChallenge[AUTH_SIZE];
+char ThePass[AUTH_SIZE];
+char TheResponse[AUTH_SIZE];
 char TheCrypted[AUTH_SIZE];
 char TheDomain[AUTH_SIZE];
 
@@ -92,7 +92,7 @@ void read_user_pass();
 void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
 void vchkpw_exit(int err);
 void run_command(char *prog);
-int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password);
+int authcram(unsigned char *challenge, unsigned char *response, unsigned char *password);
 int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *clearpass);
 
 #define POP_CONN  0
@@ -105,7 +105,7 @@ int main( int argc, char **argv)
 {
  char *tmpstr;
 
-  if ( (IpAddr = get_remote_ip())  == NULL) IpAddr="";
+  if ( (IpAddr = getenv("TCPREMOTEIP"))  == NULL) IpAddr="";
   if ( (tmpstr = getenv("TCPLOCALPORT")) == NULL) LocalPort = 110;
   else LocalPort = atoi(tmpstr);
 
@@ -347,7 +347,7 @@ It is not for runnning on the command line.\n", VchkpwLogName);
     if ( l==i ) break;
   }
 
-  /* parse out the password  (or response or C/R) */
+  /* parse out the password */
   memset(ThePass,0,AUTH_SIZE);
   for(j=0,++l;l<AUTH_INC_SIZE;++j,++l){
     ThePass[j] = TheDomain[l];
@@ -355,11 +355,11 @@ It is not for runnning on the command line.\n", VchkpwLogName);
     if ( l==i ) break;
   }
 
-  /* parse out the challenge */
-  memset(TheChallenge,0,AUTH_SIZE);
+  /* parse out the response */
+  memset(TheResponse,0,AUTH_SIZE);
   for(j=0,++l;l<AUTH_INC_SIZE;++j,++l){
-    TheChallenge[j] = TheDomain[l];
-    if ( TheChallenge[j] == 0 ) break;
+    TheResponse[j] = TheDomain[l];
+    if ( TheResponse[j] == 0 ) break;
     if ( l==i ) break;
   }
 
@@ -402,29 +402,20 @@ void login_virtual_user()
                                 TheName, IpAddr, LogLine);
       vchkpw_exit(14);
     }
-    /* Re-read the vpw entry, because we need to lookup the newly created
-     * pw_dir entry
-     */
-    if ((vpw=vauth_getpw(TheUser, TheDomain)) == NULL ) {
-      snprintf(LogLine, sizeof(LogLine), "%s: failed to vauth_getpw() after dir auto create %s@%s:%s",
-        VchkpwLogName, TheUser, TheDomain, IpAddr);
-      vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass,
-                                TheName, IpAddr, LogLine);
-      vchkpw_exit(14);
-    }
+
   }
 
 #ifdef CLEAR_PASS 
   /* Check CRAM-MD5 auth */
   if(ConnType == SMTP_CONN) {
 	  /* printf("vchkpw: smtp auth\n"); */
-    cramaccepted = authcram(ThePass,TheChallenge,vpw->pw_clear_passwd);
+    cramaccepted = authcram(ThePass,TheResponse,vpw->pw_clear_passwd);
     if(cramaccepted == 0) strcpy(AuthType, "CRAM-MD5");
   }
 
   /* Check APOP auth */
   if(ConnType == POP_CONN) {
-    apopaccepted = authapop(ThePass,TheChallenge,vpw->pw_clear_passwd);
+    apopaccepted = authapop(ThePass,TheResponse,vpw->pw_clear_passwd);
     if(apopaccepted == 0) strcpy(AuthType, "APOP");
   }
 #endif
@@ -674,7 +665,7 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 #endif
 }
 
-int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password)
+int authcram(unsigned char *challenge, unsigned char *response, unsigned char *password)
 {
    unsigned char digest[16];
    unsigned char digascii[33];
