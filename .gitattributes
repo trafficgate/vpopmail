@@ -19,6 +19,8 @@ vpopmail/Makefile.am -text
 vpopmail/Makefile.in -text
 vpopmail/README -text
 vpopmail/README.activedirectory -text
+vpopmail/README.build -text
+vpopmail/README.debug -text
 vpopmail/README.filelocking -text
 vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
@@ -31,6 +33,7 @@ vpopmail/README.sybase -text
 vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
+vpopmail/TODO -text
 vpopmail/UPGRADE -text
 vpopmail/aclocal.m4 -text
 vpopmail/bigdir.c -text
