@@ -127,6 +127,7 @@ vpopmail/valias.c -text
 vpopmail/vauth.h -text
 vpopmail/vcdb.c -text
 vpopmail/vcdb.h -text
+vpopmail/vchangepw.c -text
 vpopmail/vchkpw.c -text
 vpopmail/vconvert.c -text
 vpopmail/vdeldomain.c -text
