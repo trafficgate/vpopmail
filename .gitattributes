@@ -30,7 +30,6 @@ vpopmail/RELEASE.NOTES -text
 vpopmail/TODO -text
 vpopmail/UPGRADE -text
 vpopmail/UPGRADE.tren -text
-vpopmail/acconfig.h -text
 vpopmail/aclocal.m4 -text
 vpopmail/bigdir.c -text
 vpopmail/cdb/Makefile -text
