@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.1.1.1 2003-09-10 20:43:12 tomcollins Exp $
+** $Id: vcdb.c,v 1.5 2003-09-29 22:21:14 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -75,6 +75,7 @@ int make_vpasswd_cdb(char *domain)
  uid_t uid;
  gid_t gid;
  char *tmpstr;
+ mode_t oldmask;
 
     /* If we don't optimize the index this time, just return */
     if ( NoMakeIndex == 1 ) return(0);
@@ -84,14 +85,20 @@ int make_vpasswd_cdb(char *domain)
     }
 
     cdbmake_init(&cdbm);
-    if ((tmfile = fopen(vpasswd_cdb_tmp_file,"w")) == NULL) {
+
+    /* temporarily set umask (no group/other access) and open temp file */
+    oldmask = umask(VPOPMAIL_UMASK);
+    tmfile = fopen(vpasswd_cdb_tmp_file,"w");
+    umask(oldmask);
+
+    if (tmfile == NULL) {
         fprintf(stderr,"Error: could not create/open temporary file\n");
         return(-1);
     }
 
     for (i=0; i < sizeof(cdbm.final); i++) {
         if (putc(' ',tmfile) == EOF) {
-                fprintf(stdout,"Error:error writing temp file\n");
+                fprintf(stderr,"Error:error writing temp file\n");
             return(-1);
         }
     }
@@ -107,7 +114,7 @@ int make_vpasswd_cdb(char *domain)
         *ptr = 0;
         keylen = strlen(key); datalen = strlen(data);
 #ifdef DEBUG
-        fprintf (stdout,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
+        fprintf (stderr,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
 #endif
 
         cdbmake_pack(packbuf, (uint32)keylen);
@@ -170,7 +177,7 @@ int make_vpasswd_cdb(char *domain)
             op = pos;
             pos += (uint32)8;
             if (pos < op) {
-                fprintf (stdout, "Error 12: too much data\n");
+                fprintf (stderr, "Error 12: too much data\n");
                 return(-1);
             }
         }
@@ -303,20 +310,22 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*uid) { pwent.pw_uid = 0; } else { pwent.pw_uid = atoi(uid); }
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
+    if ((! pwent.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0)) {
+        pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
+    } else pwent.pw_flags = pwent.pw_gid;
+
 #ifdef DEBUG
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
     fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
     fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
     fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
+    fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
     fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
     fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
     fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
 #endif
-    if (vget_limits (in_domain,&limits) == 0) {
-        if (! pwent.pw_gid && V_OVERRIDE) {
-            pwent.pw_gid = pwent.pw_gid | vlimits_get_gid_mask (&limits);
-        }
-    }
+
     return(&pwent);
 }
 

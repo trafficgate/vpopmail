@@ -1,5 +1,6 @@
 /*
- * *Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpopmail.c,v 1.7 2003-09-30 00:30:49 tomcollins Exp $
+ * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -289,6 +290,7 @@ int vdeldomain( char *domain )
  struct stat statbuf;
  char Dir[MAX_BUFF];
  char domain_to_del[MAX_BUFF];
+ char dircontrol[MAX_BUFF];
  uid_t uid;
  gid_t gid;
 
@@ -358,6 +360,30 @@ int vdeldomain( char *domain )
       return (VA_NO_AUTH_CONNECTION);
     }
 
+    /* vdel_limits does the following :
+     * If we have mysql_limits enabled,
+     *  it will delete the domain's entries from the limits table
+     * Or if we arent using mysql_limits,
+     *  it will delete the .qmail-admin file from the domain's dir
+     *
+     * Note there are inconsistencies in the auth backends.  Some
+     * will run vdel_limits() in vauth_deldomain(), others don't.
+     * For now, we always run it to be safe.  Ultimately, the auth
+     * backends should to be updated to do this.
+     */  
+    vdel_limits(domain);
+
+    /* delete the dir control info for this domain */
+    if (vdel_dir_control(domain) != 0) {
+      printf ("Failed to delete dir_control for %s\n", domain);
+      /* Michael Bowe 23rd August 2003  
+       * should we return now? or continue and clean up as much  
+       * of the domain as possible
+       * If we dont exit now, how can we signal failure to the  
+       * calling function?  
+       */  
+    }
+
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
     if ( S_ISLNK(statbuf.st_mode) ) {
@@ -374,7 +400,7 @@ int vdeldomain( char *domain )
       /* Not a symlink.. so we have to del some files structure now */
       /* zap the domain's directory tree */
       if ( vdelfiles(Dir) != 0 ) {
-        printf("Failed while attempting to del dir tree : %s\n", domain);
+        printf("Failed to delete directory tree: %s\n", domain);
         /* Michael Bowe 23rd August 2003
          * should we return now? or continue and clean up as much
          * of the domain as possible (eg assign file, dir_control)
@@ -383,11 +409,28 @@ int vdeldomain( char *domain )
          */
       }
     }
+
+    /* decrement the master domain control info */
+    snprintf(dircontrol, sizeof(dircontrol), "dom_%lu", (long unsigned)uid);
+    dec_dir_control(dircontrol, uid, gid);
+  }
+
+  /* The following things need to happen for real and aliased domains */
+
+  /* delete the email domain from the qmail control files */
+  if (del_control(domain_to_del) != 0) {
+    printf ("Failed to delete domain from qmail's control files\n");
+    /* Michael Bowe 23rd August 2003
+     * should we return now? or continue and clean up as much
+     * of the domain as possible
+     * If we dont exit now, how can we signal failure to the
+     * calling function?
+     */
   }
 
   /* delete the assign file line */
   if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
-    printf ("Failed while attempting to del domain from assign file\n");
+    printf ("Failed to delete domain from assign file\n");
     /* Michael Bowe 23rd August 2003
      * should we return now? or continue and clean up as much
      * of the domain as possible
@@ -395,43 +438,9 @@ int vdeldomain( char *domain )
      * calling function?
      */
   }
-
-  /* delete the email domain from the qmail control files */
-  if (del_control(domain_to_del) != 0) {
-    printf ("Failed while attempting to del domain from qmail's control files\n");
-    /* Michael Bowe 23rd August 2003
-     * should we return now? or continue and clean up as much
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the
-     * calling function?
-     */
-  }
-
-  /* delete the dir control info for this domain */
-  if (vdel_dir_control(domain_to_del) != 0) {
-    printf ("Failed while attempting to delete domain from dir_control\n");
-    /* Michael Bowe 23rd August 2003  
-     * should we return now? or continue and clean up as much  
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the  
-     * calling function?  
-     */  
-  }
-
-  /* decrement the master domain control info */
-  snprintf(Dir, sizeof(Dir), "dom_%lu", (long unsigned)uid);
-  dec_dir_control(Dir, uid, gid);
 
   /* send a HUP signal to qmail-send process to reread control files */
   signal_process("qmail-send", SIGHUP);
-
-  /* vdel_limits does the following :
-   * If we have mysql_limits enabled,
-   *  it will delete the domain's entries from the limits table
-   * Or if we arent using mysql_limits,
-   *  it will delete the .qmail-admin file from the domain's dir
-   */  
-  vdel_limits(domain);
 
   return(VA_SUCCESS);
 
@@ -534,17 +543,10 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 
 char randltr(void)
 {
- char rand;
- char retval = 'a';
+  static const char saltchar[] =
+    "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  rand = random() % 64;
-
-  if (rand < 26) retval = rand + 'a';
-  if (rand > 25) retval = rand - 26 + 'A';
-  if (rand > 51) retval = rand - 52 + '0';
-  if (rand == 62) retval = ';';
-  if (rand == 63) retval = '.';
-  return retval;
+  return saltchar[(random() % 64)];
 }
 
 /************************************************************************/
@@ -567,7 +569,7 @@ char randltr(void)
 int mkpasswd3( char *clearpass, char *crypted, int ssize )
 {
  char *tmpstr;
- char salt[9];
+ char salt[12];
  time_t tm;
 
   time(&tm);
@@ -582,7 +584,10 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
   salt[5] = randltr();
   salt[6] = randltr();
   salt[7] = randltr();
-  salt[8] = 0;
+  salt[8] = randltr();
+  salt[9] = randltr();
+  salt[10] = randltr();
+  salt[11] = 0;
 #else
   salt[0] = randltr();
   salt[1] = randltr();
@@ -2800,34 +2805,37 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
 
 /************************************************************************/
 
-/* Michael Bowe 15th Aug 2003
- * isnt this malloc going to cause a memory leak?
- * How can we get around this?
- * perhaps it should be int vgen_pass(char *generatedpass, int len)
- */
-char *vgen_pass(int len)
+char *vrandom_pass(char *buffer, int len)
+/* write a random password of 'len' characters to buffer and return it */
 {
-  int gen_char_len = 0; 
-  int i = 0; 
-  int k = 0; 
-  char *p = NULL;
+  int gen_char_len; 
+  int i, k; 
+
+  if (buffer == NULL) return buffer;
 
   gen_char_len = strlen(gen_chars);
 
-  p = malloc(len + 1);
-  if (p == NULL) return NULL;
-
   srand(rand() % time(NULL) ^ getpid());
-
-  memset((char *)p, len, 0);
 
   for (i = 0; i < len; i++) {
     k = rand()%gen_char_len;
-    p[i] = gen_chars[k];
+    buffer[i] = gen_chars[k];
   }
-  return p;
+  buffer[len] = '\0';  /* NULL terminator */
 
+  return buffer;
 }
+
+char *vgen_pass(int len)
+/* old function to generate a random password (replaced by vrandom_pass) */
+{
+  char *p;
+
+  p = malloc(len + 1);
+  if (p == NULL) return NULL;
+  return (vrandom_pass (p, len));
+}
+
 
 /************************************************************************/
 

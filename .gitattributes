@@ -1,4 +1,15 @@
 * text=auto !eol
+CVSROOT/checkoutlist -text
+CVSROOT/commitinfo -text
+CVSROOT/config -text
+CVSROOT/cvswrappers -text
+CVSROOT/editinfo -text
+CVSROOT/loginfo -text
+CVSROOT/modules -text
+CVSROOT/notify -text
+CVSROOT/rcsinfo -text
+CVSROOT/taginfo -text
+CVSROOT/verifymsg -text
 vpopmail/AUTHORS -text
 vpopmail/COPYING -text
 vpopmail/ChangeLog -text
@@ -145,7 +156,6 @@ vpopmail/vpgsql.c -text
 vpopmail/vpgsql.h -text
 vpopmail/vpopbull.c -text
 vpopmail/vpopmail.c -text
-vpopmail/vpopmail.config.sh -text
 vpopmail/vpopmail.h -text
 vpopmail/vqmaillocal.c -text
 vpopmail/vsetuserquota.c -text

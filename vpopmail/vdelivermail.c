@@ -67,7 +67,6 @@ char msgbuf[MSG_BUF_SIZE];
 
 #define BUFF_SIZE 300
 int fdm;
-static char *binqqargs[4];
 char *maildir_to_email(char *maildir);
 
 #define QUOTA_WARN_PERCENT 90
@@ -395,6 +394,7 @@ long unsigned qmail_inject_open(char *address)
  long unsigned pid;
  int i=0;
  static char *in_address;
+ static char *binqqargs[4];
 
     in_address = malloc(strlen(address)+1);  
     strcpy(in_address, address);
@@ -413,7 +413,8 @@ long unsigned qmail_inject_open(char *address)
         close(pim[1]);
         if (vfd_move(0,pim[0]) == -1 ) _exit(-1);
         binqqargs[0] = QMAILINJECT;
-        binqqargs[1] = &in_address[i];
+        binqqargs[1] = "--";
+        binqqargs[2] = &in_address[i];
         execv(*binqqargs, binqqargs);
     }
     fdm = pim[1];
@@ -689,7 +690,8 @@ int deliver_mail(char *address, char *quota)
                     /* even rename failed, time to give up */
                     printf("rename failed %s %s errno = %d\n", 
                         local_file, local_file_new, errno);
-                        return(errno);
+                    /* shouldn't we unlink the file here? */
+                    return(errno);
 
                 /* rename worked, so we are okay now */
                 } else {
@@ -701,6 +703,7 @@ int deliver_mail(char *address, char *quota)
                 printf("link REALLY failed %s %s errno = %d\n", 
                     local_file, local_file_new, errno);
                 unlink(local_file);
+                return(errno);
             }
         }
     }
@@ -752,6 +755,9 @@ int check_forward_deliver(char *dir)
          * then skip this line
          */
         if ( strcmp( qmail_line, tmpbuf) == 0 ) continue;
+        /* check for &user@example.com as well */
+        if ((*qmail_line == '&') && (strcmp (qmail_line + 1, tmpbuf) == 0))
+            continue;
 
         deliver_err = deliver_mail(qmail_line, "NOQUOTA");
         if (deliver_err == -2) {
@@ -1086,12 +1092,12 @@ void usernotfound()
 
     /* check if it is a path add the /Maildir/ for delivery */
     if ( bounce[0] == '/' ) {
-        strcat( bounce, "/");
+        if (bounce[strlen(bounce)-1] != '/') strcat( bounce, "/");
         printf ("user does not exist, but will deliver to %s\n", bounce);
         if( check_forward_deliver(bounce) == 1 )
             vexit(0);
         else
-            strcat( bounce, "/Maildir/");
+            strcat( bounce, "Maildir/");
     }
 
     ret = deliver_mail(bounce, "NOQUOTA" );

@@ -284,15 +284,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
    ldap_value_free(vals);
   } 
 #endif
-  /* this is necessary to enforce the qmailadmin-limits
-     a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
-     unless the user has the V_OVERRIDE flag set
-  */
-  if (vget_limits (domain,&limits) == 0) {
-  	if (! vpw->pw_gid && V_OVERRIDE) {
-  		vpw->pw_gid |= vlimits_get_gid_mask (&limits);
-  	}
-  }
+
+  if ((! vpw->pw_gid && V_OVERRIDE)
+    && (vget_limits (in_domain, &limits) == 0)) {
+      vpw->pw_flags = vpw->pw_gid | vlimits_get_gid_mask (&limits);
+  } else vpw->pw_flags = vpw->pw_gid;
 
  return vpw;
 
@@ -914,10 +910,6 @@ int vdel_dir_control(char *domain)
     strncpy(dir_control_file,"/.dir-control", MAX_DIR_NAME);
     return(unlink(dir_control_file));
 }
-int vset_lastauth(char *user, char *domain, char *remoteip )
-{
-  return(vset_lastauth_time(user, domain, remoteip, time(NULL) ));
-}
 
 int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time )
 {
@@ -945,9 +937,13 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
         vget_assign(domain,NULL,0,&uid,&gid);
         chown(tmpbuf,uid,gid);
 	safe_free((void **) &tmpbuf);
-#else
-	return(0);
 #endif
+	return(0);
+}
+
+int vset_lastauth(char *user, char *domain, char *remoteip )
+{
+  return(vset_lastauth_time(user, domain, remoteip, time(NULL) ));
 }
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: valias.c,v 1.3 2003-09-30 20:55:11 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +60,7 @@ int main(int argc, char *argv[])
 		if ( strstr(Email, "@") == NULL ) {
 			/* display all aliases for domain */
 			tmpalias = valias_select_all( Alias, Email );
+			if (tmpalias == NULL) vexit(-1);
 			while (tmpalias != NULL ) {
 				printf("%s@%s -> %s\n", Alias, Email, tmpalias);
 				tmpalias = valias_select_all_next(Alias);
@@ -66,6 +68,7 @@ int main(int argc, char *argv[])
 		} else {
 			/* display aliases for Alias@Domain */
 			tmpalias = valias_select( Alias, Domain );
+			if (tmpalias == NULL) vexit(-1);
 			while (tmpalias != NULL ) {
 				printf("%s@%s -> %s\n", Alias, Domain,tmpalias);
 				tmpalias = valias_select_next();
@@ -76,7 +79,7 @@ int main(int argc, char *argv[])
 	case VALIAS_INSERT:
 		/* check to see if it already exists */
 		AliasExists = 0;
-		tmpalias = valias_select_all( Alias, Domain );
+		tmpalias = valias_select( Alias, Domain );
 		while (tmpalias != NULL ) {
 			if (strcmp (tmpalias, AliasLine) == 0) AliasExists = 1;
 			tmpalias = valias_select_next();
@@ -94,7 +97,7 @@ int main(int argc, char *argv[])
 		break;
 
         default:
-		printf("error, Alias Action is invalid %d\n", AliasAction);
+		printf("error, Alias Action '%d' is invalid\n", AliasAction);
 		break;
 	}
 	return(vexit(0));

@@ -319,15 +319,12 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   if ( PQgetvalue( pgres, 0, 7 ) != 0 )
     strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
 #endif
-  /* this is necessary to enforce the qmailadmin-limits
-     a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
-     unless the user has the V_OVERRIDE flag set
-  */
-  if (vget_limits (in_domain,&limits) == 0) {
-    if (! vpw.pw_gid && V_OVERRIDE) {
-      vpw.pw_gid |= vlimits_get_gid_mask (&limits);
-    }
-  }
+
+  if ((! vpw.pw_gid && V_OVERRIDE)
+    && (vget_limits (in_domain, &limits) == 0)) {
+      vpw.pw_flags = vpw.pw_gid | vlimits_get_gid_mask (&limits);
+  } else vpw.pw_flags = vpw.pw_gid;
+
   return(&vpw);
 }
 
@@ -490,7 +487,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     pgres = PQexec(pgc, SqlBufRead);
     if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       if( pgres ) PQclear(pgres);
-      printf("vauth_getall:query failed[5]: %s\n",PQresultErrorMessage(pgres));
+      fprintf(stderr, "vauth_getall:query failed[5]: %s\n",PQresultErrorMessage(pgres));
       return (NULL);
     }
     ntuples = PQntuples( pgres );
@@ -694,7 +691,7 @@ void vupdate_rules(int fdm)
     vcreate_relay_table();
     if(pgres) PQclear(pgres);
     if ( !(pgres=PQexec(pgc, SqlBufRead)) || PQresultStatus(pgres)!=PGRES_TUPLES_OK ) {
-      printf("vupdate_rules: query : %s\n", PQresultErrorMessage(pgres));
+      fprintf(stderr, "vupdate_rules: query : %s\n", PQresultErrorMessage(pgres));
       return;
     }
   }

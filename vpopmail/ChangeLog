@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.28 - released ???
+5.3.28 - released 3-Oct-03
 
 	Michael Bowe
 	- Remove vget_real_domain() declaration from vpopmail.h. [800738]
@@ -19,6 +19,28 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Update vpopbull to skip alias domains. [790778]
 	- Look for MySQL in /usr/local/mysql/{include,lib} during configure.
 	- Added pw_flags to vqpasswd struct, still need to update code.
+	- Return error if link fails at end of deliver_mail().
+	- Fix vdeldomain() to delete things in the correct order. [805703]
+	- Update Makefile.am to create bin/doc/etc/include/lib with
+	  correct owner/permissions if not already present.
+	- Send errors to stderr instead of stdout (vmysql, vcdb, vpgsql).
+	- Set umask before opening vpasswd.cdb.
+	- Start adding CVS ID tags to each file.
+	- Replace vgen_pass() with vrandom_pass() which doesn't leak
+	  memory. [793662, 803950]
+	- Fix broken dupe-alias checking code in valias. [807935]
+	- Update Makefile.am to write all libs to etc/lib_deps. [796524]
+	- Exit non-zero for non-existent alias with `valias -s <alias>`.
+	- Properly append /Maildir/ to catchall in vdelivermail.c. [816336]
+
+	Kazuho Oku
+	- Fix qmail_inject_open() in vdelivermail to work with addresses 
+	  that start with a hyphen (-). [805907]
+
+	Anders Brander
+	- Fix mkpasswd3() to use 8-char MD5 salt (instead of 5-char).
+	  [804266]
+	- Allow for swapped parameters to vaddaliasdomain. [812150]
 
 5.3.27 - released 4-Sep-03
 
