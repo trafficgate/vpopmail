@@ -25,6 +25,7 @@ vpopmail/README.mysql -text
 vpopmail/README.oracle -text
 vpopmail/README.pgsql -text
 vpopmail/README.quotas -text
+vpopmail/README.roamingusers -text
 vpopmail/README.sybase -text
 vpopmail/README.vqmaillocal -text
 vpopmail/UPGRADE -text
