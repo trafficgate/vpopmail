@@ -97,6 +97,7 @@ vpopmail/doc/man_html/vdeluser.html -text
 vpopmail/doc/man_html/vpasswd.html -text
 vpopmail/doc/man_html/vpopbull.html -text
 vpopmail/doc/man_html/vsetuserquota.html -text
+vpopmail/dotqmail2valias.c -text
 vpopmail/file_lock.c -text
 vpopmail/file_lock.h -text
 vpopmail/global.h -text
