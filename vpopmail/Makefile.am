@@ -23,8 +23,7 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
- dotqmail2valias
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
@@ -37,9 +36,6 @@ vchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vchangepw_SOURCES = vchangepw.c
 vchangepw_LDADD = libvpopmail.a @auth_libs@
-
-dotqmail2valias_SOURCES = dotqmail2valias.c
-dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
@@ -112,9 +108,9 @@ install-data-local:
 	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	echo "-I@vpopmaildir@/include" > \
+	echo "-I$(DESTDIR)@vpopmaildir@/include" > \
 	 $(DESTDIR)@vpopmaildir@/etc/inc_deps
-	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
+	echo "-L$(DESTDIR)@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
 	 $(DESTDIR)@vpopmaildir@/etc/lib_deps
 
 	if test ! -r $(VLIMITS); then \
