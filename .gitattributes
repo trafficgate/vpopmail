@@ -69,9 +69,6 @@ vpopmail/contrib/vlog-support-0.22.tar.gz -text svneol=unset#unset
 vpopmail/contrib/vpassgen -text
 vpopmail/contrib/vpassgen.README -text
 vpopmail/contrib/vreorg.c -text
-vpopmail/convert/Make.vcalias -text
-vpopmail/convert/vcalias.README -text
-vpopmail/convert/vcalias.c -text
 vpopmail/doc/5.0doc -text
 vpopmail/doc/doc_html/vpopmail.html -text
 vpopmail/doc/doc_html/vpopmail5.abw -text
