@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.8 2004-02-16 06:48:41 tomcollins Exp $
+ * $Id: vadduser.c,v 1.5 2003-10-13 22:26:45 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -133,12 +133,12 @@ void usage()
 {
     printf( "vadduser: usage: [options] email_address [passwd]\n");
     printf("options: -v (print the version)\n");
-    printf("         -q quota_in_bytes (sets the users quota, use NOQUOTA for unlimited)\n");
-//  printf("         -s (don't rebuild the vpasswd.cdb file, faster for large sites)\n");
+    printf("         -q quota_in_bytes (sets the users quota)\n");
+    printf("         -s (don't rebuild the vpasswd.cdb file, faster for large sites)\n");
     printf("         -c comment (sets the gecos comment field)\n");
     printf("         -e standard_encrypted_password\n");
     printf("         -n no_password\n");
-    printf("         -r[len] (generate a len (default 8) char random password)\n");
+    printf("         -r generate a random password\n");
 }
 
 void get_options(int argc,char **argv)
@@ -158,7 +158,7 @@ void get_options(int argc,char **argv)
     RandomPw = 0;
 
     errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"svc:nq:e:r::")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"svc:nq:e:r")) != -1 ) {
         switch(c) {
           case 'v':
             printf("version: %s\n", VERSION);
@@ -173,18 +173,14 @@ void get_options(int argc,char **argv)
             snprintf(Crypted, sizeof(Crypted), "%s", optarg);
             break;
           case 's':
-            fprintf (stderr, "Warning: The -s option has been temporarily disabled.\n");
-            /* NoMakeIndex = 1; */
+            NoMakeIndex = 1;
             break;
           case 'n':
             NoPassword = 1;
             break;
           case 'r':
             RandomPw = 1;
-            if (optarg)
-                vrandom_pass (Passwd, atoi(optarg));
-            else
-                vrandom_pass (Passwd, 8);
+            vrandom_pass (Passwd, 8);
             break;
           default:
             errflag = 1;

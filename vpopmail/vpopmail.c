@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.19 2003-12-08 12:09:23 mbowe Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@
 #include "file_lock.h"
 #include "vauth.h"
 #include "vlimits.h"
-#include "maildirquota.h"
 
 #define MAX_BUFF 256
 
@@ -549,7 +548,7 @@ char randltr(void)
   static const char saltchar[] =
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  return saltchar[(rand() % 64)];
+  return saltchar[(random() % 64)];
 }
 
 /************************************************************************/
@@ -577,7 +576,7 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 
  if (!seeded) {
    seeded = 1;
-   srand (time(NULL)^(getpid()<<15));
+   srandom (time(NULL)^(getpid()<<15));
  }
 
 #ifdef MD5_PASSWORDS
@@ -797,12 +796,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
   /* compile the assign file */
-  /* as of the 5.4 builds, we always need an updated assign file since
-   * we call vget_assign to add the postmaster account.  The correct
-   * solution is to cache the information somewhere so vget_assign
-   * can pull from cache instead of having to read the assign file.
-   */
-  /* if ( OptimizeAddDomain == 0 ) */ update_newu();
+  if ( OptimizeAddDomain == 0 ) update_newu();
 
   /* If we have more than 50 domains in rcpthosts
    * make a morercpthosts and compile it
@@ -1563,18 +1557,6 @@ int vsetuserquota( char *username, char *domain, char *quota )
 
   mypw = vauth_getpw( username, domain );
   remove_maildirsize(mypw->pw_dir);
-  if (strcmp (quota, "NOQUOTA") != 0) {
-   uid_t uid;
-   gid_t gid;
-   char maildir[MAX_BUFF];
-    snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
-    umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, quota);
-    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
-      strcat(maildir, "maildirsize");
-      chown(maildir,uid,gid);
-    }
-  }
   return(0);
 }
 
@@ -2455,6 +2437,7 @@ int open_smtp_relay()
  time_t mytime;
  int rebuild_cdb = 1;
  char open_smtp_tmp_filename[MAX_BUFF];
+ char *cp;
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
 
@@ -2494,9 +2477,25 @@ int open_smtp_relay()
     return(-1);
   }
 
-  ipaddr = get_remote_ip();
+  /* grab the user's ip address */
+  ipaddr = getenv("TCPREMOTEIP");
 
-  if ( ipaddr == NULL ) {     
+  if ( ipaddr != NULL ) { 
+    
+    /* As a security precaution, remove all but good chars */  
+    for (cp = ipaddr; *(cp += strspn(cp, ok_env_chars)); ) {*cp='_';}  
+    
+    /* Michael Bowe 14th August 2003  
+     * Mmmm Yuk below. What if TCPLOCALIP=":\0"  
+     * Buffer overflow.  
+     * Need to perhaps at least check strlen of ipaddr  
+     */  
+    if ( ipaddr[0] == ':') {
+      ipaddr +=2;
+      while(*ipaddr!=':') ++ipaddr;
+      ++ipaddr;
+    }
+  } else {
 #ifdef FILE_LOCKING
     unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
     fclose(fs_lok_file);
@@ -2985,7 +2984,7 @@ char	*p;
 static char    tempquota[128];
 
     if (strcmp (q, "NOQUOTA") == 0) {
-      strcpy (tempquota, "NOQUOTA");
+      strcat (tempquota, "NOQUOTA");
       return tempquota;
     }
 
@@ -3048,77 +3047,5 @@ char *date_header()
     tm->tm_hour, tm->tm_min, tm->tm_sec);
 
   return dh;
-}
-
-char *get_remote_ip()
-{
-  char *ipenv;
-  static char ipbuf[30];
-  char *ipaddr;
-  char *p;
-
-  ipenv = getenv("TCPREMOTEIP");
-  if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipbuf))) return ipenv;
-
-  strcpy (ipbuf, ipenv);
-  ipaddr = ipbuf;
-
-  /* Convert ::ffff:127.0.0.1 format to 127.0.0.1
-   * While avoiding buffer overflow.
-   */
-  if (*ipaddr == ':') {
-    ipaddr++;
-    if (*ipaddr != '\0') ipaddr++;
-    while((*ipaddr != ':') && (*ipaddr != '\0')) ipaddr++;
-    if (*ipaddr != '\0') ipaddr++;
-  }
-
-  /* remove invalid characters */
-  for (p = ipaddr; *(p += strspn(p, ok_env_chars)); ) {*p='_';}
-
-  return ipaddr;  
-}
-
-
-char *maildir_to_email(const char *maildir)
-{
- static char email[256];
- int i, j=0;
- char *pnt, *last;
-
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    pnt = last + strlen(DOMAINS_DIR) + 2;
-    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
 }
 

@@ -10,8 +10,7 @@ noinst_LIBRARIES=libvpopmail.a
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES=vauth.c
 
-INSTALL_PROGRAM= ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ $(AM_INSTALL_PROGRAM_FLAGS)
-INSTALL_STRIP_PROGRAM=${INSTALL_PROGRAM} -s
+AM_INSTALL_PROGRAM_FLAGS= -o @vpopuser@ -m 711 -g @vpopgroup@ 
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
@@ -23,8 +22,7 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
- dotqmail2valias
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
@@ -37,9 +35,6 @@ vchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vchangepw_SOURCES = vchangepw.c
 vchangepw_LDADD = libvpopmail.a @auth_libs@
-
-dotqmail2valias_SOURCES = dotqmail2valias.c
-dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
@@ -112,10 +107,8 @@ install-data-local:
 	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	echo "-I@vpopmaildir@/include" > \
-	 $(DESTDIR)@vpopmaildir@/etc/inc_deps
-	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
-	 $(DESTDIR)@vpopmaildir@/etc/lib_deps
+	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
+	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > @vpopmaildir@/etc/lib_deps
 
 	if test ! -r $(VLIMITS); then \
 	  $(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \
@@ -159,10 +152,10 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/man_html/*.* $(DESTDIR)@vpopmaildir@/doc/man_html/
+	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
 
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/doc_html/*.* $(DESTDIR)@vpopmaildir@/doc/doc_html/
+	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
 
 fix-priv:
 	if test -r $(MYSQLCONF); then \

@@ -1,10 +1,5 @@
-November 2003 : Michael Bowe <mbowe@pipeline.com.au>
-
 VPOPMAIL ROAMING USERS
-~~~~~~~~~~~~~~~~~~~~~~
-Latest version available from :
-http://www.pipeline.com.au/staff/mbowe/isp/webmail-server.htm
-
+----------------------
 
 With qmail, the typical way to control mail relaying is to put a list of 
 rules into a file called tcp.smtp. The tcprules program is then used to 
@@ -40,7 +35,7 @@ are closed within a reasonable timeframe after being opened.
 Configuration options for vpopmail that relate to roaming users :
 
   ./configure \
-  --enable-roaming-users \              <- enable roaming users functionality
+  --enable-roaming-users=y \            <- enable roaming users functionality
   --enable-tcprules-prog=path \         <- defaults to /usr/local/bin/tcprules
   --enable-tcpserver-file=path \        <- defaults to /home/vpopmail/etc/tcp.smtp
   --enable-relay-clear-minutes=minutes  <- defaults to 180
@@ -60,7 +55,7 @@ There is no need to rebuild the tcp.smtp.cdb file as the IP address is
 already permitted to relay. Rebuilding the file will only waste disk and CPU 
 time.
 
-If the vpopmail server is using the default cdb authentication backend,
+If the vpopmail server is using the default cdb authentication backend, 
 then the list of roaming IPs will be stored in a file called 
 ~vpopmail/etc/open-smtp. If the vpopmail server is using the MySQL backend, 
 the roaming IPs will be stored in a database table called relay. The SQL 
@@ -70,19 +65,20 @@ busy server, as a large amount of disk and CPU will be used with the continual
 rebuilding of the tcp.smtp.cdb file. If the server is busy enough you could 
 run into nasty file locking issues which will cause vpopmail password 
 authentication to intermittently fail. If you absolutely must have 
-POP-before-SMTP functionality on your busy server, then there are only two 
-possible solutions that I can think of  : 1) you could try putting the 
-tcp.smtp files onto a RAM disk, or 2) use vpopmail's MySQL auth backend, 
-plus use Matt Simerson's tcpserver patch that allows all of the tcp.smtp 
-files to be stored in MySQL 
-http://matt.simerson.net/computing/mail/qmail/ucspi-tcp-0.88-mysql.patch
+POP-before-SMTP functionality on your busy server, then the only real 
+solution is to use vpopmail's MySQL auth backend, plus use Matt Simerson's 
+tcpserver patch that allows all of the tcp.smtp files to be stored in MySQL
+( http://matt.simerson.net/computing/mail/qmail/ucspi-tcp-0.88-mysql.patch )
 
 Over time POP-before-SMTP seems to slowly becoming a less favored way of 
 allowing roaming users to relay mail. SMTP-Auth appears to becoming the more 
-preferred option, as it scales much more easily on a busy server. However 
-for a small to medium sized server, POP-before-SMTP is still quite a workable 
-option. If you would like investigate the use of SMTP-Auth, take a look at this
-patch http://www.fehcom.de/qmail/smtpauth.html#PATCHES  
+preferred option, as it scales much more easily on a busy server. However for 
+a small to medium sized server, POP-before-SMTP is still quite a workable 
+option. Bill Shupp's qmail toaster guide shows an example of how to integrate 
+SMTP-Auth with a vpopmail server ( http://www.shupp.org/toaster/ )
 
 ----------------------------------------------------------------------------
 
+This document was contributed by Michael Bowe (November 2003)
+Latest version available from :
+http://www.pipeline.com.au/staff/mbowe/isp/webmail-server.htm
