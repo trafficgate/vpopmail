@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.18 2003-11-20 22:45:26 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@
 #include "file_lock.h"
 #include "vauth.h"
 #include "vlimits.h"
-#include "maildirquota.h"
 
 #define MAX_BUFF 256
 
@@ -285,14 +284,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
 /************************************************************************/
 
-/* Delete a domain from the entire mail system
- *
- * If we have problems at any of the following steps, it has been 
- * decided that the best course of action is to continue rather than
- * abort. The idea behind this is to allow the removal of a partially
- * installed domain. We will emit warnings should any of the expected
- * cleanup steps fail.
- */
+/* Delete a domain from the entire mail system */
 int vdeldomain( char *domain )
 {
  struct stat statbuf;
@@ -337,7 +329,8 @@ int vdeldomain( char *domain )
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
-      fprintf(stderr, "Warning: Could not access (%s)\n",Dir);
+      fprintf(stderr, "Error: Could not access (%s)\n",Dir);
+      return(VA_DOMAIN_DOES_NOT_EXIST);
     }
 
     /*
@@ -363,7 +356,8 @@ int vdeldomain( char *domain )
      * - delete domain's limit's entries
      */
     if (vauth_deldomain(domain) != VA_SUCCESS ) {
-      fprintf (stderr, "Warning: Failed while attempting to delete domain from auth backend\n");
+      fprintf (stderr, "Failed while attempting to delete domain from auth backend\n");
+      return (VA_NO_AUTH_CONNECTION);
     }
 
     /* vdel_limits does the following :
@@ -381,14 +375,26 @@ int vdeldomain( char *domain )
 
     /* delete the dir control info for this domain */
     if (vdel_dir_control(domain) != 0) {
-      fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
+      fprintf (stderr, "Failed to delete dir_control for %s\n", domain);
+      /* Michael Bowe 23rd August 2003  
+       * should we return now? or continue and clean up as much  
+       * of the domain as possible
+       * If we dont exit now, how can we signal failure to the  
+       * calling function?  
+       */  
     }
 
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
     if ( S_ISLNK(statbuf.st_mode) ) {
       if ( unlink(Dir) !=0) {
-        fprintf (stderr, "Warning: Failed to remove symlink for %s\n", domain);
+        fprintf (stderr, "Failed to remove symlink for %s\n", domain);
+        /* Michael Bowe 23rd August 2003
+         * should we return now? or continue and clean up as much
+         * of the domain as possible (eg assign file, dir_control)
+         * If we dont exit now, how can we signal failure to the
+         * calling function?
+         */
       }
     } else {
       char cwdbuff[MAX_BUFF];
@@ -397,7 +403,13 @@ int vdeldomain( char *domain )
       /* zap the domain's directory tree */
       cwd = getcwd (cwdbuff, sizeof(cwdbuff));  /* save calling directory */
       if ( vdelfiles(Dir) != 0 ) {
-        fprintf(stderr, "Warning: Failed to delete directory tree: %s\n", domain);
+        fprintf(stderr, "Failed to delete directory tree: %s\n", domain);
+        /* Michael Bowe 23rd August 2003
+         * should we return now? or continue and clean up as much
+         * of the domain as possible (eg assign file, dir_control)
+         * If we dont exit now, how can we signal failure to the
+         * calling function?
+         */
       }
       if (cwd != NULL) chdir (cwd);
     }
@@ -409,16 +421,26 @@ int vdeldomain( char *domain )
 
   /* The following things need to happen for real and aliased domains */
 
-  /* delete the email domain from the qmail control files :
-   * rcpthosts, morercpthosts, virtualdomains
-   */
+  /* delete the email domain from the qmail control files */
   if (del_control(domain_to_del) != 0) {
-    fprintf (stderr, "Warning: Failed to delete domain from qmail's control files\n");
+    fprintf (stderr, "Failed to delete domain from qmail's control files\n");
+    /* Michael Bowe 23rd August 2003
+     * should we return now? or continue and clean up as much
+     * of the domain as possible
+     * If we dont exit now, how can we signal failure to the
+     * calling function?
+     */
   }
 
   /* delete the assign file line */
   if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
-    fprintf (stderr, "Warning: Failed to delete domain from the assign file\n");
+    fprintf (stderr, "Failed to delete domain from assign file\n");
+    /* Michael Bowe 23rd August 2003
+     * should we return now? or continue and clean up as much
+     * of the domain as possible
+     * If we dont exit now, how can we signal failure to the
+     * calling function?
+     */
   }
 
   /* send a HUP signal to qmail-send process to reread control files */
@@ -549,7 +571,7 @@ char randltr(void)
   static const char saltchar[] =
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  return saltchar[(rand() % 64)];
+  return saltchar[(random() % 64)];
 }
 
 /************************************************************************/
@@ -577,7 +599,7 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 
  if (!seeded) {
    seeded = 1;
-   srand (time(NULL)^(getpid()<<15));
+   srandom (time(NULL)^(getpid()<<15));
  }
 
 #ifdef MD5_PASSWORDS
@@ -797,12 +819,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
   /* compile the assign file */
-  /* as of the 5.4 builds, we always need an updated assign file since
-   * we call vget_assign to add the postmaster account.  The correct
-   * solution is to cache the information somewhere so vget_assign
-   * can pull from cache instead of having to read the assign file.
-   */
-  /* if ( OptimizeAddDomain == 0 ) */ update_newu();
+  if ( OptimizeAddDomain == 0 ) update_newu();
 
   /* If we have more than 50 domains in rcpthosts
    * make a morercpthosts and compile it
@@ -863,8 +880,6 @@ int del_control(char *domain )
  char tmpbuf2[MAX_BUFF];
  struct stat statbuf;
 
- int problem_occurred = 0;
-
   /* delete entry from control/rcpthosts (if it is found) */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/rcpthosts", QMAILDIR);
   switch ( remove_line( domain, tmpbuf1) ) {
@@ -872,7 +887,7 @@ int del_control(char *domain )
     case -1 :
       /* error ocurred in remove line */
       fprintf (stderr, "Failed while attempting to remove_line() the rcpthosts file\n");
-      problem_occurred = 1;
+      return (-1);
       break;
 
     case 0 :
@@ -882,11 +897,9 @@ int del_control(char *domain )
       switch (remove_line( domain, tmpbuf1) ) {
 
         case -1 :
-          /* error ocurred in remove line
-           * but this is normal enough as on smaller servers, the morercpthosts
-           * file wont exist. So ignore this 'error' condition.
-           */
-          break; 
+          /* error ocurred in remove line */
+          fprintf (stderr, "Failed while attempting to remove_ile() the morercpthosts file\n");
+          return (-1);
 
         case 0 :
          /* not found in morercpthosts */
@@ -909,11 +922,8 @@ int del_control(char *domain )
               /* make sure correct permissions are set on morercpthosts */
               chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
             }
-          }
-          break; 
-
+          } 
       } /* switch for morercpthosts */ 
-      break;
 
     case 1 : /* we removed the line successfully */
       /* make sure correct permissions are set on rcpthosts */
@@ -926,17 +936,12 @@ int del_control(char *domain )
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
   if (remove_line( tmpbuf1, tmpbuf2) < 0 ) {
     fprintf(stderr, "Failed while attempting to remove_line() the virtualdomains file\n"); 
-    problem_occurred = 1; 
+    return(-1);
   }
-
   /* make sure correct permissions are set on virtualdomains */
   chmod(tmpbuf2, VPOPMAIL_QMAIL_MODE ); 
-  
-  if (problem_occurred == 1) {
-    return (-1);
-  } else { 
-    return(0);
-  }
+
+  return(0);
 }
 
 /************************************************************************/
@@ -983,9 +988,9 @@ int del_domain_assign( char *alias_domain, char *real_domain,
  * input: template to search for
  *        file to search inside
  *
- * output: -1 on failure
- *          0 on success, no match found
- *          1 on success, match was found
+ * output: less than zero on failure
+ *         0 if successful
+ *         1 if match found
  */
 int remove_line( char *template, char *filename )
 {
@@ -1120,7 +1125,7 @@ int remove_line( char *template, char *filename )
 #endif
 
   /* return 0 = everything went okay, but we didn't find it
-   *        1 = everything went okay, and we found a match
+   *        1 = everything went okay and we found a match
    */
   return(found);
 
@@ -1563,18 +1568,6 @@ int vsetuserquota( char *username, char *domain, char *quota )
 
   mypw = vauth_getpw( username, domain );
   remove_maildirsize(mypw->pw_dir);
-  if (strcmp (quota, "NOQUOTA") != 0) {
-   uid_t uid;
-   gid_t gid;
-   char maildir[MAX_BUFF];
-    snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
-    umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, quota);
-    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
-      strcat(maildir, "maildirsize");
-      chown(maildir,uid,gid);
-    }
-  }
   return(0);
 }
 
@@ -2455,6 +2448,7 @@ int open_smtp_relay()
  time_t mytime;
  int rebuild_cdb = 1;
  char open_smtp_tmp_filename[MAX_BUFF];
+ char *cp;
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
 
@@ -2494,9 +2488,25 @@ int open_smtp_relay()
     return(-1);
   }
 
-  ipaddr = get_remote_ip();
+  /* grab the user's ip address */
+  ipaddr = getenv("TCPREMOTEIP");
 
-  if ( ipaddr == NULL ) {     
+  if ( ipaddr != NULL ) { 
+    
+    /* As a security precaution, remove all but good chars */  
+    for (cp = ipaddr; *(cp += strspn(cp, ok_env_chars)); ) {*cp='_';}  
+    
+    /* Michael Bowe 14th August 2003  
+     * Mmmm Yuk below. What if TCPLOCALIP=":\0"  
+     * Buffer overflow.  
+     * Need to perhaps at least check strlen of ipaddr  
+     */  
+    if ( ipaddr[0] == ':') {
+      ipaddr +=2;
+      while(*ipaddr!=':') ++ipaddr;
+      ++ipaddr;
+    }
+  } else {
 #ifdef FILE_LOCKING
     unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
     fclose(fs_lok_file);
@@ -2985,7 +2995,7 @@ char	*p;
 static char    tempquota[128];
 
     if (strcmp (q, "NOQUOTA") == 0) {
-      strcpy (tempquota, "NOQUOTA");
+      strcat (tempquota, "NOQUOTA");
       return tempquota;
     }
 
@@ -3048,77 +3058,5 @@ char *date_header()
     tm->tm_hour, tm->tm_min, tm->tm_sec);
 
   return dh;
-}
-
-char *get_remote_ip()
-{
-  char *ipenv;
-  static char ipbuf[30];
-  char *ipaddr;
-  char *p;
-
-  ipenv = getenv("TCPREMOTEIP");
-  if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipbuf))) return ipenv;
-
-  strcpy (ipbuf, ipenv);
-  ipaddr = ipbuf;
-
-  /* Convert ::ffff:127.0.0.1 format to 127.0.0.1
-   * While avoiding buffer overflow.
-   */
-  if (*ipaddr == ':') {
-    ipaddr++;
-    if (*ipaddr != '\0') ipaddr++;
-    while((*ipaddr != ':') && (*ipaddr != '\0')) ipaddr++;
-    if (*ipaddr != '\0') ipaddr++;
-  }
-
-  /* remove invalid characters */
-  for (p = ipaddr; *(p += strspn(p, ok_env_chars)); ) {*p='_';}
-
-  return ipaddr;  
-}
-
-
-char *maildir_to_email(const char *maildir)
-{
- static char email[256];
- int i, j=0;
- char *pnt, *last;
-
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    pnt = last + strlen(DOMAINS_DIR) + 2;
-    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
 }
 

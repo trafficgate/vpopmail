@@ -1,4 +1,15 @@
 * text=auto !eol
+CVSROOT/checkoutlist -text
+CVSROOT/commitinfo -text
+CVSROOT/config -text
+CVSROOT/cvswrappers -text
+CVSROOT/editinfo -text
+CVSROOT/loginfo -text
+CVSROOT/modules -text
+CVSROOT/notify -text
+CVSROOT/rcsinfo -text
+CVSROOT/taginfo -text
+CVSROOT/verifymsg -text
 vpopmail/AUTHORS -text
 vpopmail/COPYING -text
 vpopmail/ChangeLog -text
@@ -6,20 +17,19 @@ vpopmail/FAQ -text
 vpopmail/INSTALL -text
 vpopmail/Makefile.am -text
 vpopmail/Makefile.in -text
+vpopmail/NEWS -text
 vpopmail/README -text
-vpopmail/README.activedirectory -text
-vpopmail/README.filelocking -text
-vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
 vpopmail/README.mysql -text
 vpopmail/README.oracle -text
 vpopmail/README.pgsql -text
 vpopmail/README.quotas -text
-vpopmail/README.roamingusers -text
 vpopmail/README.sybase -text
-vpopmail/README.vlimits -text
 vpopmail/README.vqmaillocal -text
+vpopmail/RELEASE.NOTES -text
+vpopmail/TODO -text
 vpopmail/UPGRADE -text
+vpopmail/UPGRADE.tren -text
 vpopmail/aclocal.m4 -text
 vpopmail/bigdir.c -text
 vpopmail/cdb/Makefile -text
@@ -34,7 +44,11 @@ vpopmail/cdb/cdbmake.h -text
 vpopmail/cdb/cdbmake_add.c -text
 vpopmail/cdb/cdbmake_hash.c -text
 vpopmail/cdb/cdbmake_pack.c -text
+vpopmail/cdb/compile -text
+vpopmail/cdb/conf-cc -text
+vpopmail/cdb/conf-ld -text
 vpopmail/cdb/find-systype.sh -text
+vpopmail/cdb/load -text
 vpopmail/cdb/makelib -text
 vpopmail/cdb/trycpp.c -text
 vpopmail/cdb/tryulong32.c -text
@@ -50,13 +64,10 @@ vpopmail/configure.in -text
 vpopmail/contrib/adduser.mysql -text
 vpopmail/contrib/addusers.pl -text
 vpopmail/contrib/cdb_clearpass.sh -text
-vpopmail/contrib/checkpassword_debug.README -text
-vpopmail/contrib/checkpassword_debug.c -text
 vpopmail/contrib/cistron_radius.README -text
 vpopmail/contrib/cistron_radius.tar.gz -text svneol=unset#unset
 vpopmail/contrib/popfetch-1.0.tar.gz -text svneol=unset#unset
 vpopmail/contrib/qmail-maildir++.patch -text
-vpopmail/contrib/qmail-smtpd-auth-0.4.2.tar.gz -text
 vpopmail/contrib/sendmail2vpopmail.pl -text
 vpopmail/contrib/sqwebmail_update -text
 vpopmail/contrib/vcdir.README -text
@@ -88,7 +99,6 @@ vpopmail/doc/man_html/vdeluser.html -text
 vpopmail/doc/man_html/vpasswd.html -text
 vpopmail/doc/man_html/vpopbull.html -text
 vpopmail/doc/man_html/vsetuserquota.html -text
-vpopmail/dotqmail2valias.c -text
 vpopmail/file_lock.c -text
 vpopmail/file_lock.h -text
 vpopmail/global.h -text
@@ -97,8 +107,6 @@ vpopmail/hmac_md5.h -text
 vpopmail/install-sh -text
 vpopmail/ldap/qmailUser.schema -text
 vpopmail/ldap/slapd.conf -text
-vpopmail/ldap/vpopmail.ldif -text
-vpopmail/ltmain.sh -text
 vpopmail/maildirquota.c -text
 vpopmail/maildirquota.h -text
 vpopmail/md5.c -text

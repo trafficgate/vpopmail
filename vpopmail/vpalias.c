@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.6 2004-01-14 23:55:21 tomcollins Exp $
+ * $Id: vpalias.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,8 +46,6 @@ char *valias_select( char *alias, char *domain )
  char tmpbuf[156];
  uid_t uid;
  gid_t gid;
- int i;
- char *p;
 
     if ( alias == NULL )  { 
       verrori=VA_NULL_POINTER;  
@@ -75,11 +73,7 @@ char *valias_select( char *alias, char *domain )
 	printf("invalid domain, not in qmail assign file\n");
 	return(NULL);
     }
-    /* need to convert '.' to ':' */
-    i = snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-", tmpstr);
-    for (p = alias; (i < sizeof(tmpbuf) - 1) && (*p != '\0'); p++)
-      tmpbuf[i++] = (*p == '.' ? ':' : *p);
-    tmpbuf[i] = '\0';
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-%s", tmpstr, alias);
     if ( (alias_fs = fopen(tmpbuf, "r")) == NULL ) {
     	return(NULL);
     }
@@ -139,12 +133,6 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *alias_line)
-{
-  fprintf (stderr, "Error: valias_remove() not implemented for non-SQL backends.\n");
-  return -1;
-}
-
 int valias_delete( char *alias, char *domain)
 {
  char *tmpstr;
@@ -183,6 +171,11 @@ char *valias_select_all( char *alias, char *domain )
       return( NULL );
     }
   
+    if ( strlen(alias) >= MAX_PW_NAME ) {
+      verrori = VA_USER_NAME_TOO_LONG;
+      return( NULL );
+    }
+
     if ( strlen(domain) >= MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
@@ -215,6 +208,12 @@ char *valias_select_all_next(char *alias)
       return( NULL );
     }
   
+    if ( strlen(alias) >= MAX_PW_NAME ) {
+      verrori = VA_USER_NAME_TOO_LONG;
+      return( NULL );
+    }
+
+
     if ( alias_fs != NULL ) {
     	if ( fgets(alias_line, sizeof(alias_line),alias_fs)==NULL){
 		fclose(alias_fs); alias_fs = NULL;
@@ -232,12 +231,27 @@ char *valias_select_all_next(char *alias)
 	}
     }
 
-    while ((mydirent=readdir(mydir))!=NULL) {
-        if ( strncmp(mydirent->d_name,".qmail-", 7) == 0 &&
+    while((mydirent=readdir(mydir))!=NULL){
+        if ( strncmp(mydirent->d_name,".qmail-", 6) == 0 &&
              strcmp(mydirent->d_name, ".qmail-default") != 0 ) {
 		snprintf(FileName, sizeof(FileName), "%s/%s", Dir, mydirent->d_name);
-		alias_fs = fopen(FileName, "r");
-		return (valias_select_all_next(alias));
+    		if ( (alias_fs = fopen(FileName, "r")) == NULL ) {
+    			return(NULL);
+    		}
+    		if ( fgets(alias_line, sizeof(alias_line),alias_fs)==NULL){
+			fclose(alias_fs); alias_fs = NULL;
+			continue;
+    		}
+    		for(tmpstr=alias_line;*tmpstr!=0;++tmpstr) {
+			if ( *tmpstr == '\n') *tmpstr = 0;
+    		}
+                /* Michael Bowe 21st Aug 2003
+                 * Chance of buffer overflow here,
+                 * because we dont know the size of alias
+                 */
+		strcpy(alias, &mydirent->d_name[7]);
+                for(i=0;alias[i]!=0;++i) if (alias[i]==':') alias[i]='.';
+    		return(alias_line);
 	}
     }
     closedir(mydir); mydir=NULL;

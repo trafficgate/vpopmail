@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.10 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vactivedir.c,v 1.8 2003-11-15 06:55:43 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -160,6 +160,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  static struct vqpasswd vpw;
  static struct actdirvp adir;
  int sock;
+ struct vlimits limits;
 
   if ( (sock=ad_open_conn())==-1){
     printf("could not connect\n");
@@ -188,7 +189,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   
   ad_fill_vpw(&vpw,&adir);
 
-  vlimits_setflags (&vpw, domain);
+  if ((! vpw.pw_gid & V_OVERRIDE)
+    && (vget_limits (domain, &limits) == 0)) {
+      vpw.pw_flags = vpw.pw_gid | vlimits_get_flag_mask (&limits);
+  } else vpw.pw_flags = vpw.pw_gid;
   
   return(&vpw);
 }
@@ -277,7 +281,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   }
 
   memcpy( adir.pw_dir, tmpbuf, strlen(tmpbuf));
+#ifdef HARD_QUOTA
+  memcpy( adir.pw_shell, HARD_QUOTA, strlen(HARD_QUOTA));
+#else
   memcpy( adir.pw_shell, "NOQUOTA", 7);
+#endif
 
 
   /*ad_print_packet(&adir);*/

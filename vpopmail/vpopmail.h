@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7 2003-12-17 04:21:10 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.3 2003-10-13 22:26:45 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@
 /* modes for vpopmail dirs, files and qmail files */
 #define VPOPMAIL_UMASK          0077
 #define VPOPMAIL_TCPRULES_UMASK 0022
-#define VPOPMAIL_DIR_MODE       0750
+#define VPOPMAIL_DIR_MODE        488
 #define VPOPMAIL_QMAIL_MODE S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 
 #define USE_POP      0x00
@@ -166,8 +166,6 @@ int is_domain_valid( char *domain );
 int vaddaliasdomain( char *alias_domain, char *real_domain);
 char *format_maildirquota(const char *q);
 char *date_header();
-char *get_remote_ip();
-char *maildir_to_email(const char *maildir);
 
 #ifdef APOP
 char *dec2hex(unsigned char *);

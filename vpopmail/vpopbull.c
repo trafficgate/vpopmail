@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.6 2004-01-11 09:16:53 mbowe Exp $
+ * $Id: vpopbull.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
 
   if ( EmailFileFlag == 1 ) {
     if ( (fsi = fopen(EmailFile, "r")) == NULL ) {
-        fprintf(stderr, "Could not open file %s\n", EmailFile);
+        printf("Could not open file %s\n", EmailFile);
         vexit(-1);
     } else {
         /* make sure the file size is not 0 */
         stat(EmailFile, &statbuf);
         if(statbuf.st_size == 0) {
-            fprintf(stderr, "Error: %s is empty\n", EmailFile);
+            printf("Error: %s is empty\n", EmailFile);
             vexit(-1);
         }
         /* check for existing date header */
@@ -114,14 +114,14 @@ int main(int argc, char *argv[])
     }
   } else if (! DoNothing) {
     /* require -f [email_file] */
-    fprintf(stderr, "Error: email_file not specified\n");
+    printf("Error: email_file not specified\n");
     usage();
     vexit(-1);
   }
 
   if ( ExcludeFileFlag == 1 ) {
     if ( (fsx = fopen(ExcludeFile, "r")) == NULL ) {
-        fprintf(stderr, "Could not open file %s\n", ExcludeFile);
+        printf("Could not open file %s\n", ExcludeFile);
         vexit(-1);
     }
   }
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         if((vget_assign(domain, domain_dir, sizeof(domain_dir), NULL, NULL)) != NULL) {
             process_domain(domain,  fsi, fsx );
         } else {
-            fprintf(stderr, "Error: domain %s does not exist\n", domain);
+            printf("Error: domain %s does not exist\n", domain);
         }
         domain = strtok(NULL, " ");
     }
@@ -191,28 +191,31 @@ int process_domain(domain, fsi, fsx )
 		(long unsigned)pid,hostname);
 
 	first = 1;
-	while( (pwent = vauth_getall(domain, first, 1)) != NULL )  {
+	while( (pwent = vauth_getall(domain, first, 0)) != NULL )  {
 		first = 0;
 
 		if ( !in_exclude_list( fsx, domain, pwent->pw_name) ) {
-			if (DoNothing) {
+			if ( Verbose == 1 ) {
 				printf("%s@%s\n", pwent->pw_name, domain);
-			} else {
-				if(copy_email( fsi, filename, domain, pwent) != 0) {
-					fprintf(stderr, "%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
-						domain, pwent->pw_dir);
-				} else if (Verbose) {
-					printf("%s@%s\n", pwent->pw_name, domain);
-                		}
+			}
+			if ( DoNothing == 0 ) {
+				if(copy_email( fsi, filename, domain, pwent) == 0) {
+			        if ( Verbose == 1 ) {
+				        printf("%s@%s\n", pwent->pw_name, domain);
+			        }
+                } else {
+				    printf("%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
+                        domain, pwent->pw_dir);
+                }
 			}
 		}
 	}	
 	return(0);
 }
 
-int copy_email( fs_file, filename, domain, pwent)
+int copy_email( fs_file, name, domain, pwent)
  FILE *fs_file;
- char *filename;
+ char *name;
  char *domain;
  struct vqpasswd *pwent;
 {
@@ -221,62 +224,16 @@ int copy_email( fs_file, filename, domain, pwent)
  FILE *fs;
  int count;
  struct stat mystatbuf;
- uid_t uid;
- gid_t gid;
 
-    /* At this point, we know that the user exists in the auth backend.
-     * Now we need to run some other checks before we can copy the
-     * bulletin into their maildir...
-     */
-
-    /* test to see if the user has been allocated a userdir yet.
-     * Some of the auth backends (eg MySQL) allow users to be inserted
-     * into authsystem while leaving their dir blank. The idea here is
-     * that this information will get allocated/updated the first time
-     * the user does an AUTH or receives a msg.
-     */
-
-    if ( pwent->pw_dir == NULL || pwent->pw_dir[0]==0 ) {
-
-       /* A dir hasnt been allocated to this user yet.
-        * Try and allocate one now
-        */
-
-       /* retrieve the domain's uid/gid
-        * (required for the call to make_user_dir()
-        */
-        if (vget_assign(domain, NULL, 0, &uid, &gid) == NULL) {
-            fprintf(stderr, "Failed to vget_assign() for %s\n", domain);
-            return (-1);
-        }
-
-        if ( make_user_dir(pwent->pw_name, domain, uid, gid) == NULL) {
-            fprintf(stderr, "Auto creation of maildir failed for %s@%s\n", pwent->pw_name, domain);
-            return(-1);
-        }
-
-        /* Re-read pwent, because we need to lookup the newly created
-         * pw_dir entry
-         */
-        if ((pwent=vauth_getpw(pwent->pw_name, domain)) == NULL ) {
-           fprintf(stderr, "Failed to vauth_getpw() for %s@%s\n", pwent->pw_name, domain);
-           return(-1);
-        }
-    }
-
-    /* At this point, a dir must have been allocated to the user
-     * in the auth backend. So the next thing to do is test to see
-     * if the dir exists on the filesystem or not. If the dir doesnt
-     * exist, then we will try and create it
-     */ 
+    /* check if the directory exists and create if needed */
     if ( stat(pwent->pw_dir, &mystatbuf ) == -1 ) {
         if ( vmake_maildir(domain, pwent->pw_dir )!= VA_SUCCESS ) {
-            fprintf(stderr, "Auto creation of maildir failed for %s@%s\n", pwent->pw_name, domain);
+            printf("Auto re-creation of maildir failed. vpopmail (#5.9.9)\n");
             return(-1);
         }
     }
 
-	snprintf(tmpbuf, sizeof(tmpbuf), "%s/Maildir/new/%s", pwent->pw_dir, filename );
+	snprintf(tmpbuf, sizeof(tmpbuf), "%s/Maildir/new/%s", pwent->pw_dir, name );
 	
 	if ( DeliveryMethod == COPY_IT ) {
 		rewind(fs_file);
@@ -292,23 +249,17 @@ int copy_email( fs_file, filename, domain, pwent)
 		}
 		fclose(fs);
 	} else if ( DeliveryMethod == HARD_LINK_IT ) {
-		if (*EmailFile == '/')
-			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", EmailFile);
-		else
-			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
+		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( link( tmpbuf1, tmpbuf) < 0 ) {
 			perror("link");
 		}
 	} else if ( DeliveryMethod == SYMBOLIC_LINK_IT ) {
-		if (*EmailFile == '/')
-			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", EmailFile);
-		else
-			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
+		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( symlink( tmpbuf1, tmpbuf) < 0 ) {
 			perror("symlink");
 		}
 	} else {
-		fprintf(stderr, "no delivery method set\n");
+		printf("no delivery method set\n");
 		return -1;
 	}
 	/* fix permissions */

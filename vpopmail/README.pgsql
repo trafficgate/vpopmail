@@ -1,32 +1,13 @@
 /* 
-   $Id: README.pgsql,v 1.9 2004-01-19 19:56:40 mbowe Exp $
+   $Id: README.pgsql,v 1.2 2003-11-02 11:42:57 mbowe Exp $
 */
---------------------------------------------------------------------------
-
-Using vpopmail with PostgreSQL is not very common.
-The PostgreSQL modules are understood to be functional, but because it not
-as popular as using CDB or MySQL auth systems, you should be wary of 
-implementing the PostgreSQL system on a production server. 
-
---------------------------------------------------------------------------
-
 ------------------------------------------------------------------------------
-2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
+2003/Nov/02 : Michael Bowe <mbowe@pipeline.com.au>
 
 A QUICK GUIDE TO VPOPMAIL WITH POSTGRESQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Full doc available from :
 http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-postgresql.htm
-
-Note :
-  You should not permit end-users to have shell access to this server.
-  PostgreSQL by default allows any local user to access any database on 
-  the server. You can certainly tighten the security of the default 
-  PostgreSQL installation, but it is pretty much futile considering that 
-  vpopmail stores the PostgresSQL login/pass in the "libvpopmail.a" file. 
-  It is straightforward for any knowledgeable local user to be able to 
-  extract the user/pass from this file
-
 
 PostgreSQL:
 
@@ -97,18 +78,13 @@ Make the user accounts
 	groupadd -g 89 vchkpw
 	useradd -g vchkpw -u 89 vpopmail
 
-	# We recommend you use the user and group id's of 89. The FreeBSD folks
-	# have reserved 89 for the group and 89 for the user for vpopmail.  Feel
-	# free to have the OS assign the group/user id (for example, Solaris won't 
-	# allow gid 89).
-
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.0.tar.gz
-	tar xzf vpopmail-5.4.0.tar.gz
-	chown -R root.root vpopmail-5.4.0
-	cd vpopmail-5.4.0
+	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.3.29.tar.gz
+	tar xzf vpopmail-5.3.29.tar.gz
+	chown -R root.root vpopmail-5.3.29
+	cd vpopmail-5.3.29
 
 Create the a vpopmail database in PostgreSQL
 
@@ -117,24 +93,23 @@ Create the a vpopmail database in PostgreSQL
 Now, build the program with a configure something like this :
 
 	./configure \
-	  --disable-roaming-users \
+	  --enable-roaming-users=n \
 	  --enable-logging=p \
-	  --disable-ip-alias-domains \
-	  --disable-passwd \
-	  --enable-clear-passwd \
-	  --disable-domain-quotas \
-	  --enable-auth-module=pgsql \
-	  --disable-many-domains \
-	  --enable-auth-logging \
-	  --enable-pgsql-logging \
-	  --enable-valias
+	  --enable-defaultquota=20971520S \
+	  --enable-ip-alias-domains=n \
+	  --enable-passwd=n \
+	  --enable-clear-passwd=y \
+	  --enable-domain-quotas=n \
+	  --enable-postgres=y \
+	  --enable-many-domains=n \
+	  --enable-auth-logging=y \
+	  --enable-pgsql-logging=y \
+	  --enable-valias=y
  
 	make
 	make install-strip
 
 ------------------------------------------------------------------------------
-PREVIOUS VPOPMAIL / PGSQL DOCUMENTATION :
-
 2002/02/22 : N.Fung <nfung@classY.jp>
 
 Notes on translating vmysql.c to vpgsql.c
