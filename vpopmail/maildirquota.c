@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7 2003-12-19 05:16:36 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.3 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,6 @@
 #include <time.h>
 #include <sys/uio.h>
 #include "vauth.h"
-#include "vpopmail.h"
 #include "vlimits.h"
 #include "maildirquota.h"
 #include "config.h"
@@ -68,7 +67,8 @@ static int maildir_parsequota(const char *n, unsigned long *s);
 int domain_over_maildirquota(const char *userdir)
 {
 struct  stat    stat_buf;
-char	domdir[MAX_PW_DIR];
+int     ret_value = 0;
+char	*domdir=(char *)malloc(strlen(userdir)+1);
 char	*p;
 char	domain[256];
 unsigned long size = 0;
@@ -82,32 +82,52 @@ struct vlimits limits;
         {
 
 		/* locate the domain directory */
-		p = maildir_to_email(userdir);
-		if (p == NULL) return -1;
+		strcpy(domdir, userdir);
+		if ((p = strstr(domdir, "/Maildir/")) != NULL)
+		{
+			while (*(--p) != '/')
+				;
+			*(p+1) = '\0';
+		}
 
-		p = strchr (p, '@');
-		if (p == NULL) return -1;
-
-		strcpy(domain, p + 1);
+		/* locate the domainname */
+		while (*(--p) != '/')
+			;
+		snprintf(domain, sizeof(domain), "%s", ++p);
+		if ((p = strchr(domain, '/')) != NULL)
+			*p = '\0';
 
 		/* get the domain quota */
-		if (vget_limits(domain, &limits)) return 0;
+		if (vget_limits(domain, &limits))
+		{
+			free(domdir);
+			return 0;
+		}
 		/* convert from MB to bytes */
 		maxsize = limits.diskquota * 1024 * 1024;
 		maxcnt = limits.maxmsgcount;
 
-		if (vget_assign (domain, domdir, sizeof(domdir), NULL, NULL) == NULL)
-			return -1;
-
 		/* get the domain usage */
-		if (readdomainquota(domdir, &size, &cnt)) return -1;
+		if (readdomainquota(domdir, &size, &cnt))
+		{
+			free(domdir);
+			return -1;
+		}
 
 		/* check if either quota (size/count) would be exceeded */
-		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize) return 1;
-		else if (maxcnt > 0 && cnt >= maxcnt) return 1;
+		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize)
+		{
+			ret_value = 1;
+		}
+		else if (maxcnt > 0 && cnt >= maxcnt)
+		{
+			ret_value = 1;
+		}
         }
 
-        return 0;
+	free(domdir);
+
+        return(ret_value);
 }
 
 int readdomainquota(const char *dir, long *sizep, int *cntp)
@@ -130,26 +150,16 @@ struct dirent *de;
 		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
 			continue;
 
-#ifdef USERS_BIG_DIR
-		if (strlen(de->d_name) == 1) {
-			/* recursive call for hashed directory */
-			snprintf (checkdir, sizeof(checkdir), "%s/%s", dir, de->d_name);
-			if (readdomainquota (checkdir, sizep, cntp) == -1) {
-				return -1;
-			}
-		} else
-#endif
+		snprintf(checkdir, sizeof(checkdir), "%s%s/Maildir/", dir, de->d_name);
+		tries = 5;
+		while (tries-- && readuserquota(checkdir, sizep, cntp))
 		{
-			snprintf(checkdir, sizeof(checkdir), "%s/%s/Maildir/", dir, de->d_name);
-			tries = 5;
-			while (tries-- && readuserquota(checkdir, sizep, cntp))
-			{
-				if (errno != EAGAIN) return -1;
-				sleep(1);
-			}
-			if (tries <= 0)
+			if (errno != EAGAIN)
 				return -1;
+			sleep(1);
 		}
+		if (tries <= 0)
+			return -1;
 	}
 	if (dirp)
 	{
@@ -166,7 +176,7 @@ struct dirent *de;
 	return 0;
 }
 
-int wrapreaduserquota(const char* dir, off_t *sizep, int *cntp)
+int readuserquota(const char* dir, long *sizep, int *cntp)
 {
 time_t	tm;
 time_t	maxtime;
@@ -238,16 +248,6 @@ struct dirent *de;
 	errno=0;
 
 	return 0;
-}
-int readuserquota(const char* dir, long *sizep, int *cntp)
-{
-	int retval;
-	off_t s;
-	
-	s = (off_t) *sizep;
-	retval = wrapreaduserquota(dir, &s, cntp);
-	*sizep = (long) s;
-	return retval;
 }
 
 int user_over_maildirquota( const char *dir, const char *q)
@@ -614,7 +614,7 @@ struct dirent *de;
 		quota_type, percentage));
 }
 
-static int	maildir_addquota(const char *dir, int maildirsize_fd,
+int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
 	if (!quota_type || !*quota_type)	return (0);
@@ -679,16 +679,16 @@ int	n;
 
 	if (isnew)
 	{
-		iov[0].iov_base=(void *)quota_type;
+		(char *)iov[0].iov_base=(char *)quota_type;
 		iov[0].iov_len=strlen(quota_type);
-		iov[1].iov_base="\n";
+		(char *)iov[1].iov_base="\n";
 		iov[1].iov_len=1;
 		niov=2;
 	}
 
 
 	sprintf(u.buf, "%ld %d\n", maildirsize_size, maildirsize_cnt);
-	iov[niov].iov_base=u.buf;
+	(char *)iov[niov].iov_base=u.buf;
 	iov[niov].iov_len=strlen(u.buf);
 
 	p=iov;
@@ -700,7 +700,7 @@ int	n;
 		{
 			if (n < p->iov_len)
 			{
-				p->iov_base=
+				(char *)p->iov_base=
 					((char *)p->iov_base + n);
 				p->iov_len -= n;
 			}
@@ -912,7 +912,7 @@ unsigned long	s;
 	return (0);
 }
 
-static int maildir_safeopen(const char *path, int mode, int perm)
+int maildir_safeopen(const char *path, int mode, int perm)
 {
 struct  stat    stat1, stat2;
 
@@ -942,7 +942,7 @@ int     fd=open(path, mode
         return (fd);
 }
 
-static char *str_pid_t(pid_t t, char *arg)
+char *str_pid_t(pid_t t, char *arg)
 {
 char    buf[NUMBUFSIZE];
 char    *p=buf+sizeof(buf)-1;
@@ -956,7 +956,7 @@ char    *p=buf+sizeof(buf)-1;
         return (strcpy(arg, p));
 }
 
-static char *str_time_t(time_t t, char *arg)
+char *str_time_t(time_t t, char *arg)
 {
 char    buf[NUMBUFSIZE];
 char    *p=buf+sizeof(buf)-1;
@@ -970,7 +970,7 @@ char    *p=buf+sizeof(buf)-1;
         return (strcpy(arg, p));
 }
 
-static int maildir_parsequota(const char *n, unsigned long *s)
+int maildir_parsequota(const char *n, unsigned long *s)
 {
 const char *o;
 int     yes;

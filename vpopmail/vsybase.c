@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vsybase.c,v 1.6 2003-10-16 22:43:40 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -161,7 +161,11 @@ int vauth_adduser_size(char *user, char *domain, char *pass, char *gecos,
 	vauth_open();
 	vset_default_domain( domain );
 
+#ifdef HARD_QUOTA
+	sprintf( quota, "%d", HARD_QUOTA );
+#else
 	strncpy( quota, "NOQUOTA", 30 );
+#endif
 
 	if ( apop == 0 ) {
 		pop = 1;
@@ -228,6 +232,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
  char in_domain[156];
  char *domstr;
  static struct vqpasswd pwent;
+ struct vlimits limits;
 
 	lowerit(user);
 	lowerit(domain);
@@ -275,7 +280,10 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	dbcancel(dbproc);
 	if ( mem_size == 0 ) return(NULL);
 
-	vlimits_setflags (&pwent, in_domain);
+	if ((! pwent.pw_gid && V_OVERRIDE)
+		&& (vget_limits (in_domain, &limits) == 0)) {
+		pwent.pw_flags = pwent.pw_gid | vlimits_get_flag_mask (&limits);
+	} else pwent.pw_flags = pwent.pw_gid;
 
 	return(&pwent);
 }

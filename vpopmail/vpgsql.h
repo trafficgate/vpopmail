@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.h,v 1.4 2004-02-11 15:40:17 tomcollins Exp $
+ * $Id: vpgsql.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,8 @@ pw_gecos varchar(48), \
 pw_dir varchar(160), \
 pw_shell varchar(20), \
 pw_clear_passwd varchar(16), \
+id integer DEFAULT nextval('\"vpopmail_id_seq\"'::text) NOT NULL, \
+UNIQUE(\"id\"), \
 PRIMARY KEY(\"pw_domain\", \"pw_name\")"
 #else
 #define TABLE_LAYOUT "pw_name varchar(32) NOT NULL, \
@@ -220,8 +222,8 @@ level_index0, level_index1, level_index2, the_dir"
 
 #define VALIAS_TABLE_LAYOUT "alias char(32) NOT NULL, \
 domain char(64) NOT NULL, \
-valias_line char(160) NOT NULL"
-#define VALIAS_INDEX_LAYOUT "(alias, domain)"
+valias_line char(160) NOT NULL, INDEX (alias, domain)"
+
 #endif
 
 #ifdef ENABLE_PGSQL_LOGGING

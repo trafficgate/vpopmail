@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vmysql.c,v 1.8 2003-10-09 22:34:58 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -346,7 +346,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
+#ifdef HARD_QUOTA
+    snprintf( quota, 30, "%s", HARD_QUOTA );
+#else
     strncpy( quota, "NOQUOTA", 30 );
+#endif
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( domain );
@@ -413,6 +417,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t myuid;
  uid_t uid;
  gid_t gid;
+ struct vlimits limits;
 
     vget_assign(domain,NULL,0,&uid,&gid);
 
@@ -491,7 +496,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     }
     mysql_free_result(res_read);
 
-    vlimits_setflags (&vpw, in_domain);
+    if ((! vpw.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0)) {
+        vpw.pw_flags = vpw.pw_gid | vlimits_get_flag_mask (&limits);
+    } else vpw.pw_flags = vpw.pw_gid;
 
     return(&vpw);
 }
@@ -790,9 +798,15 @@ int vopen_smtp_relay()
  int rows;
 
     mytime = time(NULL);
-    ipaddr = get_remote_ip();
+    ipaddr = getenv("TCPREMOTEIP");
     if ( ipaddr == NULL ) {
         return 0;
+    }
+
+    if ( ipaddr != NULL &&  ipaddr[0] == ':') {
+        ipaddr +=2;
+        while(*ipaddr!=':') ++ipaddr;
+        ++ipaddr;
     }
 
     if ( (err=vauth_open_update()) != 0 ) return 0;
@@ -1242,7 +1256,7 @@ void vcreate_lastauth_table()
     }
     return;
 }
-#endif /* ENABLE_AUTH_LOGGING */
+#endif
 
 #ifdef VALIAS
 char *valias_select( char *alias, char *domain )
@@ -1292,26 +1306,6 @@ int valias_insert( char *alias, char *domain, char *alias_line)
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
             fprintf(stderr, "vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
-            return(-1);
-        }
-    }
-    return(0);
-}
-
-int valias_remove( char *alias, char *domain, char *alias_line)
-{
- int err;
-
-    if ( (err=vauth_open_update()) != 0 ) return(err);
-
-    snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where alias = \"%s\" \
-and valias_line = \"%s\" and domain = \"%s\"", alias, alias_line, domain );
-
-    if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        vcreate_valias_table();
-        if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1378,7 +1372,7 @@ char *valias_select_all( char *alias, char *domain )
     if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
     snprintf( SqlBufRead, SQL_BUF_SIZE, 
-        "select alias, valias_line from valias where domain = \"%s\" order by alias", domain );
+        "select alias, valias_line from valias where domain = \"%s\"", domain );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();

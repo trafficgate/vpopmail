@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.10 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vactivedir.c,v 1.6 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -160,6 +160,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  static struct vqpasswd vpw;
  static struct actdirvp adir;
  int sock;
+ struct vlimits limits;
 
   if ( (sock=ad_open_conn())==-1){
     printf("could not connect\n");
@@ -188,7 +189,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   
   ad_fill_vpw(&vpw,&adir);
 
-  vlimits_setflags (&vpw, domain);
+  if ((! vpw.pw_gid && V_OVERRIDE)
+    && (vget_limits (domain, &limits) == 0)) {
+      vpw.pw_flags = vpw.pw_gid | vlimits_get_flag_mask (&limits);
+  } else vpw.pw_flags = vpw.pw_gid;
   
   return(&vpw);
 }
@@ -277,7 +281,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   }
 
   memcpy( adir.pw_dir, tmpbuf, strlen(tmpbuf));
+#ifdef HARD_QUOTA
+  memcpy( adir.pw_shell, HARD_QUOTA, strlen(HARD_QUOTA));
+#else
   memcpy( adir.pw_shell, "NOQUOTA", 7);
+#endif
 
 
   /*ad_print_packet(&adir);*/
@@ -668,9 +676,9 @@ int vdel_dir_control(char *domain)
   return(unlink(dir_control_file));
 }
 
-#ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
+#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  FILE *fs;
  struct vqpasswd *vpw;
@@ -691,11 +699,13 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
   vget_assign(domain,NULL,0,&uid,&gid);
   chown(tmpbuf,uid,gid);
   free(tmpbuf);
+#endif
   return(0);
 }
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 {
+#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  struct stat mystatbuf;
 
@@ -707,10 +717,14 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
   }
   free(tmpbuf);
   return(mystatbuf.st_mtime);
+#else
+  return(0);
+#endif
 }
 
 char *vget_lastauthip( struct vqpasswd *pw, char *domain)
 {
+#ifdef ENABLE_AUTH_LOGGING
  static char tmpbuf[MAX_BUFF];
  FILE *fs;
 
@@ -719,8 +733,10 @@ char *vget_lastauthip( struct vqpasswd *pw, char *domain)
   fgets(tmpbuf,MAX_BUFF,fs);
   fclose(fs);
   return(tmpbuf);
+#else
+  return(NULL);
+#endif
 }
-#endif /* ENABLE_AUTH_LOGGING */
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid)
 {

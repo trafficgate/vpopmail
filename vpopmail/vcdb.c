@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vcdb.c,v 1.8 2003-10-20 18:59:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
+** $Id: vcdb.c,v 1.8 2003-10-20 18:59:57 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -231,6 +231,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #ifdef FILE_LOCKING
  FILE *lock_fs;
 #endif
+ struct vlimits limits;
 
     verrori = 0;
     lowerit(user);
@@ -310,7 +311,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*uid) { pwent.pw_uid = 0; } else { pwent.pw_uid = atoi(uid); }
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
-    vlimits_setflags (&pwent, in_domain);
+    if ((! pwent.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0)) {
+        pwent.pw_flags = pwent.pw_gid | vlimits_get_flag_mask (&limits);
+    } else pwent.pw_flags = pwent.pw_gid;
 
 #ifdef DEBUG
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
@@ -689,7 +693,11 @@ int vauth_adduser_line( FILE *fs1,
             }
         }
 
+#ifdef HARD_QUOTA
+        fprintf(fs1, "%s", HARD_QUOTA);
+#else
         fprintf(fs1, "NOQUOTA");
+#endif
 
 #ifndef CLEAR_PASS
         fprintf(fs1, "\n");
@@ -1012,9 +1020,9 @@ int vdel_dir_control(char *domain)
     return(unlink(dir_control_file));
 }
 
-#ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
+#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  FILE *fs;
  struct vqpasswd *vpw;
@@ -1035,11 +1043,13 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
         vget_assign(domain,NULL,0,&uid,&gid);
         chown(tmpbuf,uid,gid);
 	free(tmpbuf);
+#endif
 	return(0);
 }
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 {
+#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  struct stat mystatbuf;
 
@@ -1051,10 +1061,14 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 	}
 	free(tmpbuf);
 	return(mystatbuf.st_mtime);
+#else
+	return(0);
+#endif
 }
 
 char *vget_lastauthip( struct vqpasswd *pw, char *domain)
 {
+#ifdef ENABLE_AUTH_LOGGING
  static char tmpbuf[MAX_BUFF];
  FILE *fs;
 
@@ -1063,8 +1077,10 @@ char *vget_lastauthip( struct vqpasswd *pw, char *domain)
         fgets(tmpbuf,MAX_BUFF,fs);
         fclose(fs);
         return(tmpbuf);
+#else
+	return(NULL);
+#endif
 }
-#endif /* ENABLE_AUTH_LOGGING */
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid)
 {

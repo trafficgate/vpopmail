@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.3 2003-09-30 04:53:39 tomcollins Exp $
 # Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
@@ -10,11 +11,9 @@ noinst_LIBRARIES=libvpopmail.a
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES=vauth.c
 
-INSTALL_PROGRAM= ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ $(AM_INSTALL_PROGRAM_FLAGS)
-INSTALL_STRIP_PROGRAM=${INSTALL_PROGRAM} -s
+AM_INSTALL_PROGRAM_FLAGS= -o @vpopuser@ -m 711 -g @vpopgroup@ 
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
-VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
 
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
 libvpopmail_a_LIBADD =  cdb/*.o
@@ -23,8 +22,7 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
- dotqmail2valias
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
@@ -34,12 +32,6 @@ vdominfo_LDADD = libvpopmail.a @auth_libs@
 
 vchkpw_SOURCES = vchkpw.c md5.c hmac_md5.c
 vchkpw_LDADD = libvpopmail.a @auth_libs@
-
-vchangepw_SOURCES = vchangepw.c
-vchangepw_LDADD = libvpopmail.a @auth_libs@
-
-dotqmail2valias_SOURCES = dotqmail2valias.c
-dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
@@ -112,38 +104,19 @@ install-data-local:
 	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	echo "-I@vpopmaildir@/include" > \
-	 $(DESTDIR)@vpopmaildir@/etc/inc_deps
-	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
-	 $(DESTDIR)@vpopmaildir@/etc/lib_deps
+	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
+	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > @vpopmaildir@/etc/lib_deps
 
-	if test ! -r $(VLIMITS); then \
-	  $(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \
-	    vlimits.default $(VLIMITS); \
-	fi
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
-	    echo "# MYSQL CONNECTION SETTINGS FOR VPOPMAIL" >> $(MYSQLCONF); \
-	    echo "#" >> $(MYSQLCONF); \
-	    echo "# Line 1 defines the connection to use for database reads," >> $(MYSQLCONF); \
-	    echo "# Line 2 defines the connection to use for database updates/writes." >> $(MYSQLCONF); \
-	    echo "#" >> $(MYSQLCONF); \
-	    echo "# If you omit line 2, then the same settings will be" >> $(MYSQLCONF); \
-	    echo "# used for both read and write." >> $(MYSQLCONF); \
-	    echo "#" >> $(MYSQLCONF); \
-	    echo "# settings for each line:" >> $(MYSQLCONF); \
-	    echo "# host|port|user|password|database" >> $(MYSQLCONF); \
-	    echo "#" >> $(MYSQLCONF); \
+	    echo "# MySQL settings, line 1 is config for read-only," > $(MYSQLCONF); \
+	    echo "# line 2 is config for update.  Settings for each" >> $(MYSQLCONF); \
+	    echo "# line: server|port|user|password|database" >> $(MYSQLCONF); \
 	    echo "localhost|0|root|secret|vpopmail" >> $(MYSQLCONF); \
-	    echo "#" >> $(MYSQLCONF); \
-	    echo "# Note:" >> $(MYSQLCONF); \
-	    echo "#   The value of host may be either a hostname or an IP address." >> $(MYSQLCONF); \
-	    echo "#   If host is 'localhost', then sockets (Unix) or named pipes (Windows)" >> $(MYSQLCONF); \
-	    echo "#   will be used instead of TCP/IP to connect to the server."   >> $(MYSQLCONF); \
 	  fi ; \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
 	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
-	  chmod 0640        $(MYSQLCONF) ; \
+	  chmod 0600        $(MYSQLCONF) ; \
 	fi
 
 	$(INSTALL) -o root -m 0644 \
@@ -159,16 +132,16 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/man_html/*.* $(DESTDIR)@vpopmaildir@/doc/man_html/
+	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
 
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/doc_html/*.* $(DESTDIR)@vpopmaildir@/doc/doc_html/
+	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
 
 fix-priv:
 	if test -r $(MYSQLCONF); then \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
 	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
-	  chmod 0640        $(MYSQLCONF) ; \
+	  chmod 0600        $(MYSQLCONF) ; \
 	fi
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"

@@ -324,7 +324,11 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
+#ifdef HARD_QUOTA
+    snprintf( quota, 30, "%s", HARD_QUOTA );
+#else
     strncpy( quota, "NOQUOTA", 30 );
+#endif
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( domain );
@@ -1193,7 +1197,7 @@ void vcreate_lastauth_table()
     EXEC SQL COMMIT;
     return;
 }
-#endif /* ENABLE_AUTH_LOGGING */
+#endif
 
 #ifdef VALIAS
 char *valias_select( char *alias, char *domain )
@@ -1238,22 +1242,6 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, "insert into valias \
 ( alias, domain, valias_line ) values ( '%s', '%s', '%s')",
         alias, domain, alias_line );
-
-    EXEC SQL PREPARE S FROM :SqlBufUpdate;
-    EXEC SQL EXECUTE S;
-    EXEC SQL COMMIT;
-    return(0);
-}
-
-int valias_remove( char *alias, char *domain, char *alias_line)
-{
- int err;
-
-    if ( (err=vauth_open_update()) != 0 ) return(err);
-
-    snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where alias = '%s' \
-and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
 
     EXEC SQL PREPARE S FROM :SqlBufUpdate;
     EXEC SQL EXECUTE S;
@@ -1310,7 +1298,7 @@ char *valias_select_all( char *alias, char *domain )
     if ( (err=vauth_open_update()) != 0 ) return(NULL);
 
     sprintf( SqlBufUpdate,
-        "select alias, valias_line from valias where domain = '%s' order by alias",
+        "select alias, valias_line from valias where  domain = '%s'",
         domain );
 
     EXEC SQL PREPARE SB FROM :SqlBufUpdate;
