@@ -148,6 +148,7 @@ vpopmail/vpgsql.h -text
 vpopmail/vpopbull.c -text
 vpopmail/vpopmail.c -text
 vpopmail/vpopmail.h -text
+vpopmail/vpopmaild.c -text
 vpopmail/vqmaillocal.c -text
 vpopmail/vsetuserquota.c -text
 vpopmail/vsybase.c -text
