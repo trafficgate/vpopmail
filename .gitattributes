@@ -43,6 +43,7 @@ vpopmail/cdb/uint32.h1 -text
 vpopmail/cdb/uint32.h2 -text
 vpopmail/cdb/warn-auto.sh -text
 vpopmail/clearopensmtp.c -text
+vpopmail/compile -text
 vpopmail/config.guess -text
 vpopmail/config.h.in -text
 vpopmail/config.sub -text
