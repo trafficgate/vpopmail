@@ -12,7 +12,6 @@ vpopmail/README.filelocking -text
 vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
 vpopmail/README.mysql -text
-vpopmail/README.onchange -text
 vpopmail/README.oracle -text
 vpopmail/README.pgsql -text
 vpopmail/README.quotas -text
