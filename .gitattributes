@@ -111,8 +111,6 @@ vpopmail/quotawarn.msg -text
 vpopmail/seek.c -text
 vpopmail/seek.h -text
 vpopmail/stamp-h.in -text
-vpopmail/vactivedir.c -text
-vpopmail/vactivedir.h -text
 vpopmail/vaddaliasdomain.c -text
 vpopmail/vadddomain.c -text
 vpopmail/vadduser.c -text
