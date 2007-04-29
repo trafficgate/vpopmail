@@ -120,6 +120,8 @@ vpopmail/ldap/vpopmail.ldif -text
 vpopmail/ltmain.sh -text
 vpopmail/maildirquota.c -text
 vpopmail/maildirquota.h -text
+vpopmail/maildrop/maildroprc.v1 -text
+vpopmail/maildrop/maildroprc.v2 -text
 vpopmail/md5.c -text
 vpopmail/md5.h -text
 vpopmail/missing -text
