@@ -11,12 +11,14 @@ vpopmail/README.activedirectory -text
 vpopmail/README.filelocking -text
 vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
+vpopmail/README.maildrop -text
 vpopmail/README.mysql -text
 vpopmail/README.onchange -text
 vpopmail/README.oracle -text
 vpopmail/README.pgsql -text
 vpopmail/README.quotas -text
 vpopmail/README.roamingusers -text
+vpopmail/README.spamassassin -text
 vpopmail/README.sybase -text
 vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
@@ -102,6 +104,8 @@ vpopmail/ldap/vpopmail.ldif -text
 vpopmail/ltmain.sh -text
 vpopmail/maildirquota.c -text
 vpopmail/maildirquota.h -text
+vpopmail/maildrop/maildroprc.v1 -text
+vpopmail/maildrop/maildroprc.v2 -text
 vpopmail/md5.c -text
 vpopmail/md5.h -text
 vpopmail/missing -text
