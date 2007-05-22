@@ -30,9 +30,6 @@ vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
 vpopmail/TODO -text
-vpopmail/doc/doc_html/vpopmail.html -text
-vpopmail/doc/doc_html/vpopmail5.abw -text
-vpopmail/doc/doc_html/vpopmailapi.png -text svneol=unset#unset
 vpopmail/doc/man_html/clearopensmtp.html -text
 vpopmail/doc/man_html/index.html -text
 vpopmail/doc/man_html/vaddaliasdomain.html -text
