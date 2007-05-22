@@ -30,5 +30,3 @@ vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
 vpopmail/TODO -text
-vpopmail/missing -text
-vpopmail/mkinstalldirs -text
