@@ -10,3 +10,4 @@ CVSROOT/notify -text
 CVSROOT/rcsinfo -text
 CVSROOT/taginfo -text
 CVSROOT/verifymsg -text
+vpopmail/README! -text
