@@ -30,9 +30,6 @@ vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
 vpopmail/TODO -text
-vpopmail/ldap/qmailUser.schema -text
-vpopmail/ldap/slapd.conf -text
-vpopmail/ldap/vpopmail.ldif -text
 vpopmail/maildrop/maildroprc.v1 -text
 vpopmail/maildrop/maildroprc.v2 -text
 vpopmail/missing -text
