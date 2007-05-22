@@ -30,9 +30,6 @@ vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
 vpopmail/TODO -text
-vpopmail/convert/Make.vcalias -text
-vpopmail/convert/vcalias.README -text
-vpopmail/convert/vcalias.c -text
 vpopmail/doc/5.0doc -text
 vpopmail/doc/doc_html/vpopmail.html -text
 vpopmail/doc/doc_html/vpopmail5.abw -text
