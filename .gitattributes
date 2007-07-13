@@ -31,9 +31,11 @@ vpopmail/README.quotas -text
 vpopmail/README.roamingusers -text
 vpopmail/README.spamassassin -text
 vpopmail/README.sybase -text
+vpopmail/README.vdelivermail -text
 vpopmail/README.vlimits -text
 vpopmail/README.vpopmaild -text
 vpopmail/README.vqmaillocal -text
+vpopmail/TODO -text
 vpopmail/UPGRADE -text
 vpopmail/aclocal.m4 -text
 vpopmail/bigdir.c -text
