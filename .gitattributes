@@ -27,6 +27,7 @@ vpopmail/README.mysql -text
 vpopmail/README.onchange -text
 vpopmail/README.oracle -text
 vpopmail/README.pgsql -text
+vpopmail/README.qmail-default -text
 vpopmail/README.quotas -text
 vpopmail/README.roamingusers -text
 vpopmail/README.spamassassin -text
