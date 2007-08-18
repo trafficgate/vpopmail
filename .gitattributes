@@ -112,6 +112,9 @@ vpopmail/grab.sh -text
 vpopmail/hmac_md5.c -text
 vpopmail/hmac_md5.h -text
 vpopmail/install-sh -text
+vpopmail/ldap/nsswitch.conf -text
+vpopmail/ldap/pam_ldap.conf -text
+vpopmail/ldap/pam_ldap.secret -text
 vpopmail/ldap/qmailUser.schema -text
 vpopmail/ldap/slapd.conf -text
 vpopmail/ldap/vpopmail.ldif -text
