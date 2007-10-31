@@ -155,6 +155,8 @@ vpopmail/vldap.h -text
 vpopmail/vlimits.c -text
 vpopmail/vlimits.default -text
 vpopmail/vlimits.h -text
+vpopmail/vlist.c -text
+vpopmail/vlistlib.c -text
 vpopmail/vlog.h -text
 vpopmail/vmkpasswd.c -text
 vpopmail/vmoddomlimits.c -text
@@ -177,3 +179,5 @@ vpopmail/vsetuserquota.c -text
 vpopmail/vsybase.c -text
 vpopmail/vsybase.h -text
 vpopmail/vuserinfo.c -text
+vpopmail/vutil.c -text
+vpopmail/vutil.h -text
