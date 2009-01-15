@@ -19,6 +19,7 @@ vpopmail/Makefile.am -text
 vpopmail/Makefile.in -text
 vpopmail/README -text
 vpopmail/README.activedirectory -text
+vpopmail/README.authvchkpw -text
 vpopmail/README.filelocking -text
 vpopmail/README.ipaliasdomains -text
 vpopmail/README.ldap -text
@@ -39,6 +40,8 @@ vpopmail/README.vqmaillocal -text
 vpopmail/TODO -text
 vpopmail/UPGRADE -text
 vpopmail/aclocal.m4 -text
+vpopmail/authvchkpw.c -text
+vpopmail/backfill.c -text
 vpopmail/bigdir.c -text
 vpopmail/cdb/Makefile -text
 vpopmail/cdb/README -text
