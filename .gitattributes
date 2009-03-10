@@ -114,6 +114,7 @@ ldap/pam_ldap.conf -text
 ldap/pam_ldap.secret -text
 ldap/qmailUser.schema -text
 ldap/slapd.conf -text
+ldap/valias.schema -text
 ldap/vpopmail.ldif -text
 /ltmain.sh -text
 /maildirquota.c -text
