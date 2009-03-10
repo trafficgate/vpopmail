@@ -1,6 +1,5 @@
 * text=auto !eol
 /ChangeLog -text
-/FAQ -text
 /Makefile.am -text
 /Makefile.in -text
 /aclocal.m4 -text
@@ -61,6 +60,7 @@ contrib/vpassgen.README -text
 contrib/vreorg.c -text
 doc/AUTHORS -text
 doc/COPYING -text
+doc/FAQ -text
 doc/INSTALL -text
 doc/README -text
 doc/README.activedirectory -text
