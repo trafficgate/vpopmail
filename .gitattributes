@@ -194,7 +194,6 @@ vusaged/domain.h -text
 vusaged/etc/vusaged.conf -text
 vusaged/grow.c -text
 vusaged/grow.h -text
-vusaged/header -text
 vusaged/list.c -text
 vusaged/list.h -text
 vusaged/packet.c -text
