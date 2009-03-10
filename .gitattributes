@@ -178,6 +178,7 @@ oracle/oracle.create -text
 /vsybase.c -text
 /vsybase.h -text
 /vusagec.c -text
+/vusagec.conf -text
 /vuserinfo.c -text
 /vutil.c -text
 /vutil.h -text
