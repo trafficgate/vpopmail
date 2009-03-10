@@ -52,7 +52,11 @@ cdb/uint32.h1 -text
 cdb/uint32.h2 -text
 cdb/warn-auto.sh -text
 /clearopensmtp.c -text
+/client.c -text
+/client.h -text
 /compile -text
+/conf.c -text
+/conf.h -text
 /config.guess -text
 /config.h.in -text
 /config.sub -text
@@ -104,6 +108,8 @@ doc/man_html/vsetuserquota.html -text
 /hmac_md5.c -text
 /hmac_md5.h -text
 /install-sh -text
+/ippp.c -text
+/ippp.h -text
 ldap/nsswitch.conf -text
 ldap/pam_ldap.conf -text
 ldap/pam_ldap.secret -text
@@ -124,6 +130,7 @@ oracle/oracle.create -text
 /seek.c -text
 /seek.h -text
 /stamp-h.in -text
+/storage.h -text
 /vaddaliasdomain.c -text
 /vadddomain.c -text
 /vadduser.c -text
@@ -170,6 +177,7 @@ oracle/oracle.create -text
 /vsetuserquota.c -text
 /vsybase.c -text
 /vsybase.h -text
+/vusagec.c -text
 /vuserinfo.c -text
 /vutil.c -text
 /vutil.h -text
