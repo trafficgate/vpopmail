@@ -216,7 +216,6 @@ vusaged/user.h -text
 vusaged/userstore.c -text
 vusaged/userstore.h -text
 vusaged/uthash.h -text
-vusaged/vusagec.c -text
 vusaged/vusaged.c -text
 /vuserinfo.c -text
 /vutil.c -text
