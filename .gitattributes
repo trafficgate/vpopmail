@@ -1,8 +1,6 @@
 * text=auto !eol
 /ChangeLog -text
-/Makefile.am -text
 /Makefile.in -text
-/aclocal.m4 -text
 /authvchkpw.c -text
 /backfill.c -text
 /bigdir.c -text
@@ -34,7 +32,7 @@ cdb/warn-auto.sh -text
 /config.h.in -text
 /config.sub -text
 /configure -text
-/configure.in -text
+/configure.ac -text
 contrib/adduser.mysql -text
 contrib/addusers.pl -text
 contrib/cdb_clearpass.sh -text
