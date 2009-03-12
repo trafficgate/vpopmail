@@ -112,7 +112,6 @@ ldap/qmailUser.schema -text
 ldap/slapd.conf -text
 ldap/valias.schema -text
 ldap/vpopmail.ldif -text
-/ltmain.sh -text
 /maildirquota.c -text
 /maildirquota.h -text
 maildrop/maildroprc.v1 -text
