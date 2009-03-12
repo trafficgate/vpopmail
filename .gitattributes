@@ -126,7 +126,6 @@ oracle/oracle.create -text
 /quotawarn.msg -text
 /seek.c -text
 /seek.h -text
-/stamp-h.in -text
 /storage.h -text
 /vaddaliasdomain.c -text
 /vadddomain.c -text
