@@ -167,6 +167,7 @@ oracle/oracle.create -text
 /vpopbull.c -text
 /vpopmail.c -text
 /vpopmail.h -text
+/vpopmail.mysql -text
 /vpopmaild.c -text
 /vpopmaild.msg -text
 /vqmaillocal.c -text
