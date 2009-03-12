@@ -100,7 +100,6 @@ doc/man_html/vsetuserquota.html -text
 /file_lock.c -text
 /file_lock.h -text
 /global.h -text
-/grab.sh -text
 /hmac_md5.c -text
 /hmac_md5.h -text
 /install-sh -text
