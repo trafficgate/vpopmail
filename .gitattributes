@@ -17,7 +17,6 @@ cdb/cdbmake_add.c -text
 cdb/cdbmake_hash.c -text
 cdb/cdbmake_pack.c -text
 cdb/find-systype.sh -text
-cdb/makelib -text
 cdb/trycpp.c -text
 cdb/tryulong32.c -text
 cdb/uint32.h1 -text
