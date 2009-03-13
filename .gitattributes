@@ -121,6 +121,8 @@ maildrop/maildroprc.v2 -text
 /missing -text
 /mkinstalldirs -text
 oracle/oracle.create -text
+/quota.c -text
+/quota.h -text
 /quotawarn.msg -text
 /seek.c -text
 /seek.h -text
