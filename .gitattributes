@@ -181,7 +181,7 @@ vusaged/INSTALL -text
 vusaged/Makefile.in -text
 vusaged/cache.c -text
 vusaged/cache.h -text
-vusaged/contrib/rc.vusaged -text
+vusaged/contrib/rc.vusaged.in -text
 vusaged/directory.c -text
 vusaged/directory.h -text
 vusaged/domain.c -text
