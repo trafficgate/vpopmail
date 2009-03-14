@@ -61,6 +61,7 @@ doc/INSTALL -text
 doc/README -text
 doc/README.activedirectory -text
 doc/README.authvchkpw -text
+doc/README.backups -text
 doc/README.filelocking -text
 doc/README.ipaliasdomains -text
 doc/README.ldap -text
