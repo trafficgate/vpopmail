@@ -7,6 +7,9 @@ backends/cdb/configure -text
 backends/cdb/configure.ac -text
 backends/cdb/vcdb.c -text
 backends/cdb/vcdb.h -text
+backends/ldap/Makefile.in -text
+backends/ldap/configure -text
+backends/ldap/configure.ac -text
 backends/ldap/nsswitch.conf -text
 backends/ldap/pam_ldap.conf -text
 backends/ldap/pam_ldap.secret -text
