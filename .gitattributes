@@ -18,6 +18,9 @@ backends/ldap/vldap.h -text
 backends/ldap/vpopmail.ldap -text
 backends/ldap/vpopmail.ldif -text
 backends/module.mk.in -text
+backends/mysql/Makefile.in -text
+backends/mysql/configure -text
+backends/mysql/configure.ac -text
 backends/mysql/vmysql.c -text
 backends/mysql/vmysql.h -text
 backends/mysql/vpopmail.mysql -text
