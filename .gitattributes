@@ -30,6 +30,9 @@ backends/mysql/vpopmail.mysql -text
 backends/oracle/oracle.create -text
 backends/oracle/voracle.h -text
 backends/oracle/voracle.pc -text
+backends/postgres/Makefile.in -text
+backends/postgres/configure -text
+backends/postgres/configure.ac -text
 backends/postgres/vpgsql.c -text
 backends/postgres/vpgsql.h -text
 backends/sybase/vsybase.c -text
