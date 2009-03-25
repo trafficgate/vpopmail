@@ -2,6 +2,7 @@
 /ChangeLog -text
 /Makefile.in -text
 /authvchkpw.c -text
+backends/README -text
 backends/cdb/Makefile.in -text
 backends/cdb/configure -text
 backends/cdb/configure.ac -text
