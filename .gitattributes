@@ -17,7 +17,7 @@ backends/ldap/qmailUser.schema -text
 backends/ldap/slapd.conf -text
 backends/ldap/valias.schema -text
 backends/ldap/vldap.c -text
-backends/ldap/vldap.h -text
+backends/ldap/vldap.h.in -text
 backends/ldap/vpopmail.ldap -text
 backends/ldap/vpopmail.ldif -text
 backends/module.mk.in -text
@@ -25,7 +25,7 @@ backends/mysql/Makefile.in -text
 backends/mysql/configure -text
 backends/mysql/configure.ac -text
 backends/mysql/vmysql.c -text
-backends/mysql/vmysql.h -text
+backends/mysql/vmysql.h.in -text
 backends/mysql/vpopmail.mysql -text
 backends/oracle/oracle.create -text
 backends/oracle/voracle.h -text
@@ -34,7 +34,7 @@ backends/postgres/Makefile.in -text
 backends/postgres/configure -text
 backends/postgres/configure.ac -text
 backends/postgres/vpgsql.c -text
-backends/postgres/vpgsql.h -text
+backends/postgres/vpgsql.h.in -text
 backends/sybase/vsybase.c -text
 backends/sybase/vsybase.h -text
 /backfill.c -text
@@ -183,6 +183,7 @@ maildrop/maildroprc.v2 -text
 /vmoddomlimits.c -text
 /vmoduser.c -text
 /vpalias.c -text
+/vpalias.h -text
 /vpasswd.c -text
 /vpopbull.c -text
 /vpopmail.c -text
