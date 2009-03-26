@@ -182,6 +182,7 @@ maildrop/maildroprc.v2 -text
 /vmkpasswd.c -text
 /vmoddomlimits.c -text
 /vmoduser.c -text
+/vmoduserflags.c -text
 /vpalias.c -text
 /vpalias.h -text
 /vpasswd.c -text
