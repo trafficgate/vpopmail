@@ -180,6 +180,7 @@ maildrop/maildroprc.v2 -text
 /vlistlib.c -text
 /vlog.h -text
 /vmkpasswd.c -text
+/vmoddomain.c -text
 /vmoddomlimits.c -text
 /vmoduser.c -text
 /vmoduserflags.c -text
