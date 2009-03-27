@@ -6,7 +6,7 @@ backends/cdb/Makefile.in -text
 backends/cdb/configure -text
 backends/cdb/configure.ac -text
 backends/cdb/vcdb.c -text
-backends/cdb/vcdb.h -text
+backends/cdb/vcdb.h.in -text
 backends/ldap/Makefile.in -text
 backends/ldap/configure -text
 backends/ldap/configure.ac -text
