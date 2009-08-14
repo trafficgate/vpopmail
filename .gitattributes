@@ -39,6 +39,7 @@ backends/sybase/vsybase.c -text
 backends/sybase/vsybase.h -text
 /backfill.c -text
 /bigdir.c -text
+/boxgroup.c -text
 cdb/Makefile -text
 cdb/README -text
 cdb/THANKS -text
@@ -136,6 +137,8 @@ doc/man_html/vsetuserquota.html -text
 /file_lock.c -text
 /file_lock.h -text
 /global.h -text
+/group.c -text
+/group.h -text
 /hmac_md5.c -text
 /hmac_md5.h -text
 /install-sh -text
