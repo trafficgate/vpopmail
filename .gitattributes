@@ -167,6 +167,7 @@ maildrop/maildroprc.v2 -text
 /vauthmodule.h -text
 /vchangepw.c -text
 /vchkpw.c -text
+/vconfig.c -text
 /vconvert.c -text
 /vdeldomain.c -text
 /vdelivermail.c -text
