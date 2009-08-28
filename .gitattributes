@@ -71,7 +71,6 @@ cdb/warn-auto.sh -text
 /config.sub -text
 /configure -text
 /configure.ac -text
-/configure.in -text
 contrib/adduser.mysql -text
 contrib/addusers.pl -text
 contrib/cdb_clearpass.sh -text
