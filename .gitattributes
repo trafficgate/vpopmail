@@ -1,9 +1,6 @@
 * text=auto !eol
 /ChangeLog -text
-/Makefile.am -text
 /Makefile.in -text
-/aclocal.m4 -text
-/authvchkpw.c -text
 backends/README -text
 backends/cdb/Makefile.in -text
 backends/cdb/configure -text
@@ -140,7 +137,6 @@ doc/man_html/vsetuserquota.html -text
 /file_lock.c -text
 /file_lock.h -text
 /global.h -text
-/grab.sh -text
 /group.c -text
 /group.h -text
 /hmac_md5.c -text
@@ -148,14 +144,6 @@ doc/man_html/vsetuserquota.html -text
 /install-sh -text
 /ippp.c -text
 /ippp.h -text
-ldap/nsswitch.conf -text
-ldap/pam_ldap.conf -text
-ldap/pam_ldap.secret -text
-ldap/qmailUser.schema -text
-ldap/slapd.conf -text
-ldap/valias.schema -text
-ldap/vpopmail.ldif -text
-/ltmain.sh -text
 /maildirquota.c -text
 /maildirquota.h -text
 maildrop/maildroprc.v1 -text
@@ -164,13 +152,11 @@ maildrop/maildroprc.v2 -text
 /md5.h -text
 /missing -text
 /mkinstalldirs -text
-oracle/oracle.create -text
 /quota.c -text
 /quota.h -text
 /quotawarn.msg -text
 /seek.c -text
 /seek.h -text
-/stamp-h.in -text
 /storage.h -text
 /vaddaliasdomain.c -text
 /vadddomain.c -text
@@ -179,8 +165,6 @@ oracle/oracle.create -text
 /vauth.c -text
 /vauth.h -text
 /vauthmodule.h -text
-/vcdb.c -text
-/vcdb.h -text
 /vchangepw.c -text
 /vchkpw.c -text
 /vconfig.c -text
@@ -193,8 +177,6 @@ oracle/oracle.create -text
 /vdominfo.c -text
 /vipmap.c -text
 /vkill.c -text
-/vldap.c -text
-/vldap.h -text
 /vlimits.c -text
 /vlimits.default -text
 /vlimits.h -text
@@ -206,15 +188,9 @@ oracle/oracle.create -text
 /vmoddomlimits.c -text
 /vmoduser.c -text
 /vmoduserflags.c -text
-/vmysql.c -text
-/vmysql.h -text
-/voracle.h -text
-/voracle.pc -text
 /vpalias.c -text
 /vpalias.h -text
 /vpasswd.c -text
-/vpgsql.c -text
-/vpgsql.h -text
 /vpopbull.c -text
 /vpopmail.c -text
 /vpopmail.h -text
@@ -222,8 +198,6 @@ oracle/oracle.create -text
 /vpopmaild.msg -text
 /vqmaillocal.c -text
 /vsetuserquota.c -text
-/vsybase.c -text
-/vsybase.h -text
 /vusagec.c -text
 /vusagec.conf -text
 vusaged/ChangeLog -text
