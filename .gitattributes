@@ -210,7 +210,6 @@ vusaged/signal.c -text
 vusaged/signal.h -text
 vusaged/socket.c -text
 vusaged/socket.h -text
-vusaged/storage.h -text
 vusaged/user.c -text
 vusaged/user.h -text
 vusaged/userstore.c -text
