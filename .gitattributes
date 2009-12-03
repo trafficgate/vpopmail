@@ -28,6 +28,7 @@ cdb/warn-auto.sh -text
 /clearopensmtp.c -text
 /client.c -text
 /client.h -text
+/compile -text
 /conf.c -text
 /conf.h -text
 /config.guess -text
