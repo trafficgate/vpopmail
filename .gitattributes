@@ -234,6 +234,8 @@ vusaged/user.h -text
 vusaged/userstore.c -text
 vusaged/userstore.h -text
 vusaged/uthash.h -text
+vusaged/vdb.c -text
+vusaged/vdb.h -text
 vusaged/vusaged.c -text
 /vuserinfo.c -text
 /vutil.c -text
