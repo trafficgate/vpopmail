@@ -27,6 +27,14 @@ backends/mysql/configure.ac -text
 backends/mysql/vmysql.c -text
 backends/mysql/vmysql.h.in -text
 backends/mysql/vpopmail.mysql -text
+backends/openldap/Makefile.in -text
+backends/openldap/configure -text
+backends/openldap/configure.ac -text
+backends/openldap/vopenldap.c -text
+backends/openldap/vopenldap.h.in -text
+backends/openldap/vpopmail.ldif -text
+backends/openldap/vpopmail.openldap -text
+backends/openldap/vpopmail.schema -text
 backends/oracle/oracle.create -text
 backends/oracle/voracle.h -text
 backends/oracle/voracle.pc -text
