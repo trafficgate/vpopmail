@@ -38,6 +38,8 @@ backends/postgres/vpgsql.h.in -text
 backends/sybase/vsybase.c -text
 backends/sybase/vsybase.h -text
 /backfill.c -text
+/base64.c -text
+/base64.h -text
 /bigdir.c -text
 /boxgroup.c -text
 cdb/Makefile -text
