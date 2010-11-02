@@ -162,6 +162,9 @@ maildrop/maildroprc.v2 -text
 /md5.h -text
 /missing -text
 /mkinstalldirs -text
+/password_strength.conf -text
+/pwstr.c -text
+/pwstr.h -text
 /quota.c -text
 /quota.h -text
 /quotawarn.msg -text
