@@ -1,14 +1,13 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.4.2)
+AC_INIT([vpopmail], [5.4.2])
+AC_CONFIG_SRCDIR([vpopmail.c])
+AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE
+AC_CANONICAL_HOST
+
 PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
-
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE()
-
-AC_CANONICAL_HOST
 
 #----------------------------------------------------------------------
 
